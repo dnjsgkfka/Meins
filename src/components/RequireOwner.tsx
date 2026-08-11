@@ -3,12 +3,14 @@ import { Outlet, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/client';
 import { fetchOwnerMe } from '../api/tags';
 import { clearToken, getToken } from '../lib/ownerToken';
+import { useToast } from '../lib/toast';
 import type { OwnerMeResponse } from '../types/api';
 import LoadingSpinner from './LoadingSpinner';
 
 export default function RequireOwner() {
   const { tagCode } = useParams<{ tagCode: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [data, setData] = useState<OwnerMeResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -35,8 +37,9 @@ export default function RequireOwner() {
         ) {
           clearToken(tagCode!);
           navigate(`/t/${tagCode}`, { replace: true });
+        } else {
+          showToast('네트워크 연결을 확인해 주세요.');
         }
-        // 네트워크 실패: 화면 유지 + 토스트 (Stage 2 item 6에서 연결 예정)
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -44,7 +47,7 @@ export default function RequireOwner() {
 
     verify();
     return () => { cancelled = true; };
-  }, [tagCode, navigate]);
+  }, [tagCode, navigate, showToast]);
 
   if (loading) return <LoadingSpinner />;
   if (!data) return null;
