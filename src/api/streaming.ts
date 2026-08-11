@@ -14,8 +14,8 @@ export async function* streamChat(
   signal: AbortSignal,
 ): AsyncGenerator<string> {
   if (import.meta.env.VITE_USE_MOCK === 'true') {
-    // mock 스트리밍 구현 예정
-    await new Promise<void>((r) => setTimeout(r, 300));
+    const { mockStreamChat } = await import('./mock/handlers');
+    yield* mockStreamChat(body, signal);
     return;
   }
 
