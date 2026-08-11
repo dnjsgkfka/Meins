@@ -1,4 +1,5 @@
 import type { ApiErrorCode, ApiErrorPayload } from '../types/api';
+import { mockDispatch } from './mock/dispatch';
 
 export class ApiError extends Error {
   code: ApiErrorCode;
@@ -31,6 +32,10 @@ export async function apiFetch<T>(
   path: string,
   options: RequestInit = {},
 ): Promise<T> {
+  if (import.meta.env.VITE_USE_MOCK === 'true') {
+    return mockDispatch<T>(path, options);
+  }
+
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
