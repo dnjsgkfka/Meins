@@ -30,6 +30,8 @@ export default function ChatPage() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+  // iOS 키보드 대응 — 실기기 테스트 필요
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
     if (!tagCode) return;
@@ -53,6 +55,17 @@ export default function ChatPage() {
 
     return () => { cancelled = true; };
   }, [tagCode, showToast]);
+
+  // iOS 키보드 대응: visualViewport 높이 변화 → 레이아웃 높이 축소 — 실기기 테스트 필요
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    function onResize() {
+      setKeyboardOffset(Math.max(0, window.innerHeight - vv!.height - vv!.offsetTop));
+    }
+    vv.addEventListener('resize', onResize);
+    return () => vv.removeEventListener('resize', onResize);
+  }, []);
 
   // 메시지 변경 시 바닥 근처 자동 스크롤
   useEffect(() => {
@@ -138,7 +151,10 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-[100dvh]">
+    <div
+      className="flex flex-col"
+      style={{ height: `calc(100dvh - ${keyboardOffset}px)` }}
+    >
       {/* 헤더 */}
       <div className="px-4 py-3 border-b border-[var(--color-border)] shrink-0">
         <p className="m-0 text-xs text-[var(--color-muted)] tracking-widest uppercase">{tagCode}</p>
