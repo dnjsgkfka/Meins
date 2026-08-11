@@ -6,17 +6,11 @@ import InfoList from '../components/product/InfoList';
 import DetailImages from '../components/product/DetailImages';
 import ProductLinkButton from '../components/product/ProductLinkButton';
 import StatusCard from '../components/product/StatusCard';
+import { formatSize } from '../lib/format';
 
 interface Props {
   tagCode: string;
   data: TagDetailResponse;
-}
-
-function formatSize(
-  size: { width: number; depth: number; height: number } | null | undefined,
-): string | undefined {
-  if (!size) return undefined;
-  return `${size.width} × ${size.depth} × ${size.height} cm`;
 }
 
 export default function GuestViewPage({ tagCode, data }: Props) {
