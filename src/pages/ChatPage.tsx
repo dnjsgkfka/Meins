@@ -70,6 +70,21 @@ export default function ChatPage() {
     abortControllerRef.current?.abort();
   }
 
+  function chargeCredit() {
+    const newRemaining = Math.max(0, credits.remaining - 1);
+    setCredits((prev) => ({ ...prev, remaining: newRemaining }));
+    if (newRemaining === 0) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant' as const,
+          content: '오늘 나눌 수 있는 대화는 여기까지입니다.',
+          createdAt: new Date().toISOString(),
+        },
+      ]);
+    }
+  }
+
   async function handleSend(text: string, preset?: ChatPresetType) {
     if (!text.trim() || isStreaming || credits.remaining === 0) return;
 
@@ -98,8 +113,8 @@ export default function ChatPage() {
           return updated;
         });
       }
-      // 정상 완료 — 크레딧 차감
-      setCredits((prev) => ({ ...prev, remaining: Math.max(0, prev.remaining - 1) }));
+      // 정상 완료 — 크레딧 차감 (소진 시 안내 메시지 추가)
+      chargeCredit();
     } catch (err) {
       if ((err as Error).name === 'AbortError') {
         // 중단 — 버블 유지, "중단됨" 표시, 크레딧 차감
@@ -108,7 +123,7 @@ export default function ChatPage() {
           updated[updated.length - 1] = { ...updated[updated.length - 1], aborted: true };
           return updated;
         });
-        setCredits((prev) => ({ ...prev, remaining: Math.max(0, prev.remaining - 1) }));
+        chargeCredit();
       } else {
         // 네트워크 실패 — 버블 제거, 입력 복원, 크레딧 미차감
         showToast('메시지 전송에 실패했습니다.');
