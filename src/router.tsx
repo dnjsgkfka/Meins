@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router';
+import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import TagEntryPage from './pages/TagEntryPage';
 import VerifyPage from './pages/VerifyPage';
@@ -9,26 +10,31 @@ import RequireOwner from './components/RequireOwner';
 
 export const router = createBrowserRouter([
   {
-    path: '/',
-    element: <LandingPage />,
-  },
-  {
-    path: '/t/:tagCode',
+    element: <Layout />,
     children: [
       {
-        index: true,
-        element: <TagEntryPage />,
+        path: '/',
+        element: <LandingPage />,
       },
       {
-        path: 'verify',
-        element: <VerifyPage />,
-      },
-      {
-        element: <RequireOwner />,
+        path: '/t/:tagCode',
         children: [
-          { path: 'home', element: <OwnerHomePage /> },
-          { path: 'ownership', element: <OwnershipPage /> },
-          { path: 'chat', element: <ChatPage /> },
+          {
+            index: true,
+            element: <TagEntryPage />,
+          },
+          {
+            path: 'verify',
+            element: <VerifyPage />,
+          },
+          {
+            element: <RequireOwner />,
+            children: [
+              { path: 'home', element: <OwnerHomePage /> },
+              { path: 'ownership', element: <OwnershipPage /> },
+              { path: 'chat', element: <ChatPage /> },
+            ],
+          },
         ],
       },
     ],
