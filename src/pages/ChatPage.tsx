@@ -22,9 +22,11 @@ export default function ChatPage() {
   const [credits, setCredits] = useState<ChatCredits>({ remaining: 10, limit: 30 });
   const [isStreaming, setIsStreaming] = useState(false);
   const [activePreset, setActivePreset] = useState<ChatPresetType | null>(null);
+  const [inputText, setInputText] = useState('');
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     if (!tagCode) return;
@@ -61,8 +63,14 @@ export default function ChatPage() {
     isNearBottomRef.current = scrollHeight - scrollTop - clientHeight < 100;
   }
 
+  function handleStop() {
+    abortControllerRef.current?.abort();
+  }
+
   // item 5에서 실제 스트리밍 로직으로 교체
-  function handleSend(_text: string, _preset?: ChatPresetType) {
+  function handleSend(text: string, _preset?: ChatPresetType) {
+    if (!text.trim() || isStreaming) return;
+    setInputText('');
     setIsStreaming(true);
     setTimeout(() => { setIsStreaming(false); setActivePreset(null); }, 1500);
   }
@@ -128,8 +136,54 @@ export default function ChatPage() {
           })}
         </div>
 
-        {/* 입력창 placeholder — 추후 구현 */}
-        <div className="h-14" />
+        {/* 입력창 + 전송/중단 버튼 */}
+        <div className="flex items-end gap-2 px-4 py-3">
+          <textarea
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+                e.preventDefault();
+                handleSend(inputText);
+              }
+            }}
+            disabled={isStreaming || credits.remaining === 0}
+            rows={1}
+            placeholder={credits.remaining === 0 ? '오늘 대화 한도에 도달했습니다.' : '메시지를 입력하세요...'}
+            className={[
+              'flex-1 resize-none rounded-2xl border px-4 py-2.5 text-sm leading-relaxed',
+              'bg-[var(--color-bg)] text-[var(--color-fg)] placeholder:text-[var(--color-muted)]',
+              'border-[var(--color-border)] outline-none focus:border-[var(--color-accent)]',
+              'transition-colors max-h-32 overflow-y-auto',
+              (isStreaming || credits.remaining === 0) ? 'opacity-50 cursor-not-allowed' : '',
+            ].join(' ')}
+          />
+          {isStreaming ? (
+            <button
+              onClick={handleStop}
+              className="shrink-0 w-10 h-10 rounded-full bg-[var(--color-accent)] text-[var(--color-bg)] flex items-center justify-center cursor-pointer"
+              aria-label="중단"
+            >
+              <span className="block w-3 h-3 rounded-sm bg-current" />
+            </button>
+          ) : (
+            <button
+              onClick={() => handleSend(inputText)}
+              disabled={!inputText.trim() || credits.remaining === 0}
+              className={[
+                'shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors',
+                inputText.trim() && credits.remaining > 0
+                  ? 'bg-[var(--color-accent)] text-[var(--color-bg)] cursor-pointer'
+                  : 'bg-[var(--color-border)] text-[var(--color-muted)] cursor-not-allowed',
+              ].join(' ')}
+              aria-label="전송"
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 14V2M2 8l6-6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
 
       <BottomTabBar tagCode={tagCode!} />
