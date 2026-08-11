@@ -165,10 +165,11 @@ export default function ChatPage() {
 
       {/* 하단 — 프리셋 칩 + 입력창 */}
       <div className="shrink-0 border-t border-[var(--color-border)] pb-[env(safe-area-inset-bottom)]">
-        {/* 잔여 크레딧 안내 (item 7에서 확장) */}
+        {/* 잔여 크레딧 안내 — remaining ≤ 2일 때만 표시 */}
         {!isLoading && credits.remaining <= 2 && (
           <p className="m-0 px-4 pt-3 text-xs text-[var(--color-muted)]">
             오늘 남은 대화: {credits.remaining}회
+            {credits.resetAt && ` · ${formatResetIn(credits.resetAt)}`}
           </p>
         )}
 
@@ -280,6 +281,15 @@ export function MessageBubble({
       )}
     </div>
   );
+}
+
+function formatResetIn(resetAt: string): string {
+  const diff = new Date(resetAt).getTime() - Date.now();
+  if (diff <= 0) return '곧 회복됩니다';
+  const h = Math.floor(diff / 3_600_000);
+  const m = Math.floor((diff % 3_600_000) / 60_000);
+  if (h > 0) return `${h}시간 ${m}분 후 회복`;
+  return `${m}분 후 회복`;
 }
 
 function SkeletonBubble({ side, width }: { side: 'left' | 'right'; width: string }) {
