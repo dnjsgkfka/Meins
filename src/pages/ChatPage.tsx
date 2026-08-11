@@ -2,9 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { useOutletContext, useParams } from 'react-router';
 import type { ChatCredits, ChatMessage, ChatPresetType, OwnerMeResponse } from '../types/api';
 import { fetchChatHistory } from '../api/tags';
+import { streamChat } from '../api/streaming';
 import { getToken } from '../lib/ownerToken';
 import { useToast } from '../lib/toast';
 import BottomTabBar from '../components/BottomTabBar';
+
+type LocalMessage = ChatMessage & { aborted?: boolean };
 
 const PRESETS: { type: ChatPresetType; label: string; text: string }[] = [
   { type: 'care',     label: '케어',    text: '이 제품을 관리하는 방법을 알려주세요.' },
@@ -18,7 +21,7 @@ export default function ChatPage() {
   const { showToast } = useToast();
 
   const [isLoading, setIsLoading] = useState(true);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<LocalMessage[]>([]);
   const [credits, setCredits] = useState<ChatCredits>({ remaining: 10, limit: 30 });
   const [isStreaming, setIsStreaming] = useState(false);
   const [activePreset, setActivePreset] = useState<ChatPresetType | null>(null);
@@ -67,12 +70,56 @@ export default function ChatPage() {
     abortControllerRef.current?.abort();
   }
 
-  // item 5에서 실제 스트리밍 로직으로 교체
-  function handleSend(text: string, _preset?: ChatPresetType) {
-    if (!text.trim() || isStreaming) return;
+  async function handleSend(text: string, preset?: ChatPresetType) {
+    if (!text.trim() || isStreaming || credits.remaining === 0) return;
+
+    const token = getToken(tagCode!) ?? '';
+    const now = new Date().toISOString();
+    const userMsg: LocalMessage = { role: 'user', content: text, createdAt: now };
+    const assistantMsg: LocalMessage = { role: 'assistant', content: '', createdAt: now };
+
+    // 사용자 버블 + 빈 어시스턴트 버블 즉시 추가
+    const prevMessages = messages;
+    setMessages((prev) => [...prev, userMsg, assistantMsg]);
     setInputText('');
     setIsStreaming(true);
-    setTimeout(() => { setIsStreaming(false); setActivePreset(null); }, 1500);
+    isNearBottomRef.current = true;
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      const body = preset ? { preset } : { message: text };
+      for await (const chunk of streamChat(tagCode!, token, body, controller.signal)) {
+        setMessages((prev) => {
+          const updated = [...prev];
+          const last = updated[updated.length - 1];
+          updated[updated.length - 1] = { ...last, content: last.content + chunk };
+          return updated;
+        });
+      }
+      // 정상 완료 — 크레딧 차감
+      setCredits((prev) => ({ ...prev, remaining: Math.max(0, prev.remaining - 1) }));
+    } catch (err) {
+      if ((err as Error).name === 'AbortError') {
+        // 중단 — 버블 유지, "중단됨" 표시, 크레딧 차감
+        setMessages((prev) => {
+          const updated = [...prev];
+          updated[updated.length - 1] = { ...updated[updated.length - 1], aborted: true };
+          return updated;
+        });
+        setCredits((prev) => ({ ...prev, remaining: Math.max(0, prev.remaining - 1) }));
+      } else {
+        // 네트워크 실패 — 버블 제거, 입력 복원, 크레딧 미차감
+        showToast('메시지 전송에 실패했습니다.');
+        setMessages(prevMessages);
+        if (!preset) setInputText(text);
+      }
+    } finally {
+      setIsStreaming(false);
+      setActivePreset(null);
+      abortControllerRef.current = null;
+    }
   }
 
   return (
@@ -95,7 +142,9 @@ export default function ChatPage() {
             <SkeletonBubble side="left" width="w-4/5" />
           </>
         ) : (
-          messages.map((msg, i) => <MessageBubble key={i} message={msg} />)
+          messages.map((msg, i) => (
+            <MessageBubble key={i} message={msg} aborted={msg.aborted} />
+          ))
         )}
       </div>
 
