@@ -5,6 +5,7 @@ import { postVerifyOwnership } from '../api/tags';
 import { setToken } from '../lib/ownerToken';
 import CodeInputField from '../components/verify/CodeInputField';
 import LockedScreen from '../components/verify/LockedScreen';
+import BottomSheet from '../components/BottomSheet';
 
 type PageState =
   | { type: 'idle' }
@@ -17,6 +18,7 @@ export default function VerifyPage() {
   const navigate = useNavigate();
   const [code, setCode] = useState('');
   const [state, setState] = useState<PageState>({ type: 'idle' });
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   async function submit(codeToSubmit: string) {
     if (state.type === 'submitting' || codeToSubmit.length !== 12) return;
@@ -94,8 +96,11 @@ export default function VerifyPage() {
         )}
       </div>
 
-      {/* "코드를 찾을 수 없나요?" — 바텀시트 연결 예정 */}
-      <button className="text-sm text-[var(--color-muted)] underline self-start bg-transparent border-none p-0 cursor-pointer">
+      {/* "코드를 찾을 수 없나요?" 링크 */}
+      <button
+        onClick={() => setSheetOpen(true)}
+        className="text-sm text-[var(--color-muted)] underline self-start bg-transparent border-none p-0 cursor-pointer"
+      >
         코드를 찾을 수 없나요?
       </button>
 
@@ -112,6 +117,22 @@ export default function VerifyPage() {
       >
         {isSubmitting ? '확인 중...' : '확인'}
       </button>
+
+      {/* 코드 분실 안내 바텀시트 */}
+      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
+        <div className="flex flex-col gap-4 px-4 pt-2 pb-6">
+          <h2 className="m-0 text-base font-semibold text-[var(--color-fg)]">코드를 찾을 수 없나요?</h2>
+          <p className="m-0 text-sm text-[var(--color-muted)] leading-relaxed">
+            구매 시 등록한 이메일을 확인해 주세요.
+          </p>
+          <a
+            href="#"
+            className="block w-full py-3.5 rounded-lg text-sm font-medium text-center border border-[var(--color-border)] text-[var(--color-fg)] no-underline"
+          >
+            고객센터 문의하기
+          </a>
+        </div>
+      </BottomSheet>
     </div>
   );
 }
