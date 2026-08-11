@@ -108,3 +108,25 @@ export async function getChatHistory(_tagCode: string): Promise<ChatHistoryRespo
 export async function postChat(_tagCode: string, _body: unknown): Promise<void> {
   await delay();
 }
+
+// TODO: 실서버에 card.png 엔드포인트 배포 시 확인 필요
+export function mockOwnershipCard(tagCode: string): Promise<Blob> {
+  return new Promise<void>((r) => setTimeout(r, 300 + Math.random() * 300)).then(
+    () =>
+      new Promise<Blob>((resolve, reject) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 240;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) { reject(new Error('canvas unavailable')); return; }
+        ctx.fillStyle = '#111111';
+        ctx.fillRect(0, 0, 400, 240);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 20px sans-serif';
+        ctx.fillText('MCM Ownership', 24, 56);
+        ctx.font = '14px monospace';
+        ctx.fillText(tagCode, 24, 90);
+        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('toBlob failed'))), 'image/png');
+      }),
+  );
+}

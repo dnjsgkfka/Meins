@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { useOutletContext, useParams } from 'react-router';
 import type { OwnerMeResponse } from '../types/api';
+import { fetchOwnershipCardBlob } from '../api/tags';
+import { getToken } from '../lib/ownerToken';
 import { formatDateTime } from '../lib/format';
 import { useToast } from '../lib/toast';
 import BottomTabBar from '../components/BottomTabBar';
@@ -11,6 +13,7 @@ export default function OwnershipPage() {
   const { showToast } = useToast();
   const [showFallbackUrl, setShowFallbackUrl] = useState(false);
   const fallbackInputRef = useRef<HTMLInputElement>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const shareUrl = `${window.location.origin}/t/${tagCode}`;
 
@@ -26,6 +29,57 @@ export default function OwnershipPage() {
         fallbackInputRef.current?.select();
       }, 0);
     }
+  }
+
+  async function handleSaveImage() {
+    if (isSaving) return;
+    setIsSaving(true);
+
+    const token = getToken(tagCode!);
+    let blob: Blob;
+    try {
+      blob = await fetchOwnershipCardBlob(tagCode!, token ?? '');
+    } catch {
+      showToast('이미지 저장에 실패하였습니다.');
+      setIsSaving(false);
+      return;
+    }
+
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const filename = `MCM_Ownership_${tagCode}_${date}.png`;
+    const file = new File([blob], filename, { type: 'image/png' });
+
+    // 1. 네이티브 공유 시트 (iOS/Android)
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        setIsSaving(false);
+        return;
+      } catch (e) {
+        if ((e as Error).name === 'AbortError') { setIsSaving(false); return; }
+      }
+    }
+
+    const objectUrl = URL.createObjectURL(blob);
+
+    // 2. <a download>
+    if ('download' in document.createElement('a')) {
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+      setIsSaving(false);
+      return;
+    }
+
+    // 3. 새 탭 열기 (구형 환경 fallback)
+    window.open(objectUrl, '_blank');
+    showToast('이미지를 길게 눌러 저장하세요.');
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
+    setIsSaving(false);
   }
 
   return (
@@ -88,10 +142,16 @@ export default function OwnershipPage() {
         </button>
 
         <button
-          onClick={() => {}}
-          className="w-full py-3.5 rounded-lg text-sm font-medium bg-[var(--color-accent)] text-[var(--color-bg)] cursor-pointer"
+          onClick={handleSaveImage}
+          disabled={isSaving}
+          className={[
+            'w-full py-3.5 rounded-lg text-sm font-medium transition-colors',
+            isSaving
+              ? 'bg-[var(--color-border)] text-[var(--color-muted)] cursor-not-allowed'
+              : 'bg-[var(--color-accent)] text-[var(--color-bg)] cursor-pointer',
+          ].join(' ')}
         >
-          이미지로 저장
+          {isSaving ? '저장 중...' : '이미지로 저장'}
         </button>
       </div>
 
