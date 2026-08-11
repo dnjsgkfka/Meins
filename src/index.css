@@ -7,8 +7,6 @@
   --color-accent: #000000;
   --color-danger: #ef4444;
   --color-border: #e2e8f0;
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  -webkit-font-smoothing: antialiased;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -23,7 +21,24 @@
 }
 
 body {
-  margin: 0;
-  background: var(--color-bg);
+  background-color: var(--color-bg);
   color: var(--color-fg);
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-border) 25%,
+    var(--color-muted)  50%,
+    var(--color-border) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
 }

@@ -2,16 +2,7 @@ import { Outlet } from 'react-router';
 
 export default function Layout() {
   return (
-    <div
-      style={{
-        minHeight: '100dvh',
-        maxWidth: '480px',
-        margin: '0 auto',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        position: 'relative',
-        boxSizing: 'border-box',
-      }}
-    >
+    <div className="min-h-[100dvh] max-w-[480px] mx-auto relative box-border pb-[env(safe-area-inset-bottom)]">
       <Outlet />
     </div>
   );
