@@ -1,10 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useOutletContext, useParams } from 'react-router';
-import type { ChatCredits, ChatMessage, OwnerMeResponse } from '../types/api';
+import type { ChatCredits, ChatMessage, ChatPresetType, OwnerMeResponse } from '../types/api';
 import { fetchChatHistory } from '../api/tags';
 import { getToken } from '../lib/ownerToken';
 import { useToast } from '../lib/toast';
 import BottomTabBar from '../components/BottomTabBar';
+
+const PRESETS: { type: ChatPresetType; label: string; text: string }[] = [
+  { type: 'care',     label: '케어',    text: '이 제품을 관리하는 방법을 알려주세요.' },
+  { type: 'style',    label: '스타일',  text: '이 제품을 어떻게 스타일링하면 좋을까요?' },
+  { type: 'heritage', label: '헤리티지', text: '이 제품에 담긴 이야기가 궁금해요.' },
+];
 
 export default function ChatPage() {
   const { tagCode } = useParams<{ tagCode: string }>();
@@ -14,6 +20,8 @@ export default function ChatPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [credits, setCredits] = useState<ChatCredits>({ remaining: 10, limit: 30 });
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [activePreset, setActivePreset] = useState<ChatPresetType | null>(null);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
@@ -53,6 +61,12 @@ export default function ChatPage() {
     isNearBottomRef.current = scrollHeight - scrollTop - clientHeight < 100;
   }
 
+  // item 5에서 실제 스트리밍 로직으로 교체
+  function handleSend(_text: string, _preset?: ChatPresetType) {
+    setIsStreaming(true);
+    setTimeout(() => { setIsStreaming(false); setActivePreset(null); }, 1500);
+  }
+
   return (
     <div className="flex flex-col min-h-[100dvh]">
       {/* 헤더 */}
@@ -77,7 +91,7 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* 하단 — 입력창/칩 (추후 구현 예정) */}
+      {/* 하단 — 프리셋 칩 + 입력창 */}
       <div className="shrink-0 border-t border-[var(--color-border)] pb-[env(safe-area-inset-bottom)]">
         {/* 잔여 크레딧 안내 (item 7에서 확장) */}
         {!isLoading && credits.remaining <= 2 && (
@@ -85,7 +99,37 @@ export default function ChatPage() {
             오늘 남은 대화: {credits.remaining}회
           </p>
         )}
-        <div className="h-16" />
+
+        {/* 프리셋 칩 */}
+        <div className="flex gap-2 px-4 pt-3 pb-2 overflow-x-auto">
+          {PRESETS.map((preset) => {
+            const isActive = isStreaming && activePreset === preset.type;
+            const isDisabled = credits.remaining === 0 || (isStreaming && activePreset !== preset.type);
+            return (
+              <button
+                key={preset.type}
+                disabled={isDisabled}
+                onClick={() => {
+                  setActivePreset(preset.type);
+                  handleSend(preset.text, preset.type);
+                }}
+                className={[
+                  'shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors',
+                  isActive
+                    ? 'bg-[var(--color-accent)] text-[var(--color-bg)] border-[var(--color-accent)]'
+                    : isDisabled
+                    ? 'border-[var(--color-border)] text-[var(--color-muted)] opacity-40 cursor-not-allowed'
+                    : 'border-[var(--color-border)] text-[var(--color-fg)] cursor-pointer',
+                ].join(' ')}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* 입력창 placeholder — 추후 구현 */}
+        <div className="h-14" />
       </div>
 
       <BottomTabBar tagCode={tagCode!} />
