@@ -1,7 +1,7 @@
 export default function LoadingSpinner() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-      <p style={{ color: 'var(--color-muted)' }}>로딩 중...</p>
+    <div className="flex justify-center items-center min-h-[50vh]">
+      <p className="text-sm text-[var(--color-muted)]">로딩 중...</p>
     </div>
   );
 }

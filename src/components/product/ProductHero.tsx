@@ -6,24 +6,19 @@ export default function ProductHero({ src, alt }: { src: string; alt?: string })
   const [imgState, setImgState] = useState<ImgState>('loading');
 
   return (
-    <div style={{ position: 'relative', aspectRatio: '1', width: '100%', background: 'var(--color-border)' }}>
+    <div className="relative aspect-square w-full bg-[var(--color-border)]">
       {/* 로딩 중: shimmer 애니메이션 */}
       {imgState === 'loading' && (
-        <div className="shimmer" style={{ position: 'absolute', inset: 0 }} />
+        <div className="shimmer absolute inset-0" />
       )}
-      {/* 실패: 정적 회색 블록 */}
+      {/* 실패: 정적 회색 블록 — 로딩과 의미가 다르므로 애니메이션 없음 */}
       {imgState === 'error' && (
-        <div style={{ position: 'absolute', inset: 0, background: 'var(--color-border)' }} />
+        <div className="absolute inset-0 bg-[var(--color-border)]" />
       )}
       <img
         src={src}
         alt={alt ?? ''}
-        style={{
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          display: imgState === 'loaded' ? 'block' : 'none',
-        }}
+        className={`w-full h-full object-cover ${imgState === 'loaded' ? 'block' : 'hidden'}`}
         onLoad={() => setImgState('loaded')}
         onError={() => setImgState('error')}
       />

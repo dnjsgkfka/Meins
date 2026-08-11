@@ -24,52 +24,35 @@ export default function GuestViewPage({ tagCode, data }: Props) {
   const { product, official, ownership } = data;
 
   return (
-    <div style={{ paddingBottom: '5rem' }}>
+    <div className="pb-24">
       {/* TagCode */}
-      <div style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-border)' }}>
-        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-muted)', letterSpacing: '0.1em' }}>
-          {tagCode}
-        </p>
+      <div className="px-4 py-3 border-b border-[var(--color-border)]">
+        <p className="m-0 text-xs text-[var(--color-muted)] tracking-widest">{tagCode}</p>
       </div>
 
       {/* ProductHero */}
       <ProductHero src={product.heroImage} alt={product.name} />
 
       {/* 공식 태그 뱃지 */}
-      <div style={{ padding: '0.75rem 1rem 0' }}>
-        <span
-          style={{
-            display: 'inline-block',
-            padding: '0.25rem 0.625rem',
-            fontSize: '0.7rem',
-            fontWeight: 600,
-            letterSpacing: '0.05em',
-            border: '1px solid var(--color-fg)',
-            borderRadius: '999px',
-          }}
-        >
+      <div className="px-4 pt-3">
+        <span className="inline-block px-2.5 py-1 text-[0.7rem] font-semibold tracking-wide border border-[var(--color-fg)] rounded-full text-[var(--color-fg)]">
           OFFICIAL TAG
         </span>
       </div>
 
-      {/* ProductTitle */}
-      <div style={{ padding: '0.5rem 1rem 0.75rem' }}>
+      {/* ProductTitle + 모델 코드 */}
+      <div className="px-4 pt-2 pb-3">
         <ProductTitle name={product.name} />
-        <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: 'var(--color-muted)' }}>
-          {product.modelCode}
-        </p>
+        <p className="m-0 mt-1 text-xs text-[var(--color-muted)]">{product.modelCode}</p>
       </div>
 
       {/* StatusCard */}
-      <div style={{ padding: '0 1rem 1rem' }}>
-        <StatusCard
-          registered={ownership.registered}
-          registeredAt={ownership.registeredAt}
-        />
+      <div className="px-4 pb-4">
+        <StatusCard registered={ownership.registered} registeredAt={ownership.registeredAt} />
       </div>
 
       {/* InfoList — 공식 출처 */}
-      <div style={{ padding: '0 1rem 1rem' }}>
+      <div className="px-4 pb-4">
         <InfoList
           items={[
             { label: '제조연월', value: official.manufacturedAt },
@@ -79,12 +62,12 @@ export default function GuestViewPage({ tagCode, data }: Props) {
       </div>
 
       {/* ProductLinkButton */}
-      <div style={{ padding: '0 1rem 1.5rem' }}>
+      <div className="px-4 pb-6">
         <ProductLinkButton url={product.productUrl} />
       </div>
 
       {/* InfoList — 제품 정보 */}
-      <div style={{ padding: '0 1rem 1rem' }}>
+      <div className="px-4 pb-4">
         <InfoList
           items={[
             { label: '소재', value: product.material },
@@ -95,64 +78,30 @@ export default function GuestViewPage({ tagCode, data }: Props) {
       </div>
 
       {/* DetailImages */}
-      <div style={{ padding: '0 1rem 1.5rem' }}>
+      <div className="px-4 pb-6">
         <DetailImages images={product.detailImages} />
       </div>
 
       {/* 하단 안내문구 */}
-      <div style={{ padding: '0 1rem 1.5rem' }}>
-        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--color-muted)', lineHeight: 1.6 }}>
+      <div className="px-4 pb-6">
+        <p className="m-0 text-xs text-[var(--color-muted)] leading-relaxed">
           본 태그는 MCM 공식 제품에만 부착됩니다. 태그 정보에 의문이 있으시면 고객센터로 문의해 주세요.
         </p>
       </div>
 
-      {/* 하단 CTA — 하단 고정 */}
-      <div
-        style={{
-          position: 'fixed',
-          bottom: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '100%',
-          maxWidth: '480px',
-          padding: '0.75rem 1rem',
-          paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))',
-          background: 'var(--color-bg)',
-          borderTop: '1px solid var(--color-border)',
-          boxSizing: 'border-box',
-        }}
-      >
+      {/* 하단 CTA — 고정 */}
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-[var(--color-bg)] border-t border-[var(--color-border)] box-border">
         {ownership.registered ? (
           <button
             disabled
-            style={{
-              width: '100%',
-              padding: '0.875rem',
-              background: 'var(--color-border)',
-              color: 'var(--color-muted)',
-              border: 'none',
-              borderRadius: '0.5rem',
-              fontSize: '0.9375rem',
-              fontWeight: 500,
-              cursor: 'not-allowed',
-            }}
+            className="w-full py-3.5 rounded-lg text-sm font-medium bg-[var(--color-border)] text-[var(--color-muted)] cursor-not-allowed"
           >
             이미 등록된 제품입니다
           </button>
         ) : (
           <button
             onClick={() => navigate(`/t/${tagCode}/verify`)}
-            style={{
-              width: '100%',
-              padding: '0.875rem',
-              background: 'var(--color-accent)',
-              color: 'var(--color-bg)',
-              border: 'none',
-              borderRadius: '0.5rem',
-              fontSize: '0.9375rem',
-              fontWeight: 500,
-              cursor: 'pointer',
-            }}
+            className="w-full py-3.5 rounded-lg text-sm font-medium bg-[var(--color-accent)] text-[var(--color-bg)] cursor-pointer"
           >
             소유자 등록하기
           </button>

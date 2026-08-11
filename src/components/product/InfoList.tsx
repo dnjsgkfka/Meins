@@ -11,21 +11,16 @@ export default function InfoList({ items }: { items: InfoItem[] }) {
   if (visible.length === 0) return null;
 
   return (
-    <dl style={{ margin: 0 }}>
+    <dl className="m-0">
       {visible.map(({ label, value }) => (
         <div
           key={label}
-          style={{
-            display: 'flex',
-            gap: '1rem',
-            padding: '0.625rem 0',
-            borderBottom: '1px solid var(--color-border)',
-          }}
+          className="flex gap-4 py-2.5 border-b border-[var(--color-border)]"
         >
-          <dt style={{ color: 'var(--color-muted)', minWidth: '5.5rem', flexShrink: 0, fontSize: '0.875rem' }}>
+          <dt className="text-sm text-[var(--color-muted)] min-w-[5.5rem] shrink-0">
             {label}
           </dt>
-          <dd style={{ margin: 0, fontSize: '0.875rem' }}>{value}</dd>
+          <dd className="m-0 text-sm text-[var(--color-fg)]">{value}</dd>
         </div>
       ))}
     </dl>

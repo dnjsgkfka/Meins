@@ -6,18 +6,9 @@ export default function ProductLinkButton({ url }: { url?: string | null }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      style={{
-        display: 'block',
-        padding: '0.75rem',
-        textAlign: 'center',
-        border: '1px solid var(--color-border)',
-        borderRadius: '0.5rem',
-        textDecoration: 'none',
-        color: 'var(--color-fg)',
-        fontSize: '0.875rem',
-      }}
+      className="block w-full py-3 text-center text-sm border border-[var(--color-border)] rounded-lg text-[var(--color-fg)] no-underline"
     >
-      제품 공식 페이지 &rarr;
+      제품 공식 페이지 →
     </a>
   );
 }
