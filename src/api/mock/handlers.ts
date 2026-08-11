@@ -53,10 +53,10 @@ export async function postVerifyOwnership(
   if (tagCode.startsWith('NOTFOUND')) {
     throw new ApiError({ code: 'TAG_NOT_FOUND', message: '태그를 찾을 수 없습니다.' });
   }
-  if (body.code === '111111111111') {
+  if (body.code === 'F26T59QR9D3K') {
     attemptCounters.delete(tagCode);
     return {
-      token: `mcm:own:${tagCode}:111111111111`,
+      token: `mcm:own:${tagCode}:F26T59QR9D3K`,
       record: { registeredAt: new Date().toISOString() },
     };
   }
