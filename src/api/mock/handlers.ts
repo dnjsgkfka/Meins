@@ -104,9 +104,44 @@ export async function getChatHistory(_tagCode: string): Promise<ChatHistoryRespo
   };
 }
 
-// 스트리밍 mock 구현 예정
+// dispatch용 stub — 실제 스트리밍은 mockStreamChat을 직접 사용
 export async function postChat(_tagCode: string, _body: unknown): Promise<void> {
   await delay();
+}
+
+type MockChatBody = { message?: string; preset?: string };
+
+const MOCK_RESPONSES: Record<string, string> = {
+  care: '이 제품은 부드러운 천으로 가볍게 닦아 주세요. 방수 스프레이를 사용하면 오염 예방에 도움이 됩니다. 직사광선을 피해 통풍이 잘 되는 곳에 보관하는 것이 좋습니다.',
+  style: '이 클래식 백팩은 캐주얼한 데일리 룩부터 스마트 캐주얼까지 두루 잘 어울립니다. 모노그램 패턴이 포인트가 되어 심플한 착장을 돋보이게 해줍니다.',
+  heritage: 'MCM은 1976년 독일 뮌헨에서 탄생한 브랜드로, 이 모노그램 패턴은 브랜드의 오랜 헤리티지를 담고 있습니다. 장인의 손길로 만들어진 제품 하나하나에 그 이야기가 새겨져 있습니다.',
+};
+
+export async function* mockStreamChat(
+  body: MockChatBody,
+  signal: AbortSignal,
+): AsyncGenerator<string> {
+  // 초기 지연 (생각 중)
+  await new Promise<void>((resolve, reject) => {
+    const t = setTimeout(resolve, 400 + Math.random() * 300);
+    signal.addEventListener('abort', () => { clearTimeout(t); reject(new DOMException('Aborted', 'AbortError')); }, { once: true });
+  });
+
+  const text = body.preset
+    ? (MOCK_RESPONSES[body.preset] ?? MOCK_RESPONSES.care)
+    : '안녕하세요! MCM 제품에 대해 궁금하신 점이 있으시면 편하게 물어봐 주세요.';
+
+  let i = 0;
+  while (i < text.length) {
+    if (signal.aborted) return;
+    const size = 2 + Math.floor(Math.random() * 2); // 2~3자씩
+    yield text.slice(i, i + size);
+    i += size;
+    await new Promise<void>((resolve, reject) => {
+      const t = setTimeout(resolve, 80);
+      signal.addEventListener('abort', () => { clearTimeout(t); reject(new DOMException('Aborted', 'AbortError')); }, { once: true });
+    });
+  }
 }
 
 // TODO: 실서버에 card.png 엔드포인트 배포 시 확인 필요
