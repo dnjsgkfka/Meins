@@ -1,11 +1,32 @@
+import { useRef, useState } from 'react';
 import { useOutletContext, useParams } from 'react-router';
 import type { OwnerMeResponse } from '../types/api';
 import { formatDateTime } from '../lib/format';
+import { useToast } from '../lib/toast';
 import BottomTabBar from '../components/BottomTabBar';
 
 export default function OwnershipPage() {
   const { tagCode } = useParams<{ tagCode: string }>();
   const data = useOutletContext<OwnerMeResponse>();
+  const { showToast } = useToast();
+  const [showFallbackUrl, setShowFallbackUrl] = useState(false);
+  const fallbackInputRef = useRef<HTMLInputElement>(null);
+
+  const shareUrl = `${window.location.origin}/t/${tagCode}`;
+
+  async function handleCopyLink() {
+    // iOS: clipboard API는 사용자 제스처 직후에 동기적으로 호출
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      showToast('링크가 복사되었습니다.');
+    } catch {
+      setShowFallbackUrl(true);
+      // 다음 렌더 후 input을 전체 선택
+      setTimeout(() => {
+        fallbackInputRef.current?.select();
+      }, 0);
+    }
+  }
 
   return (
     <div className="pb-20">
@@ -44,9 +65,23 @@ export default function OwnershipPage() {
           </dl>
         </div>
 
+        {/* 클립보드 권한 거부 시 수동 복사용 fallback */}
+        {showFallbackUrl && (
+          <div className="flex flex-col gap-1.5">
+            <p className="m-0 text-xs text-[var(--color-muted)]">아래 링크를 직접 복사해 주세요.</p>
+            <input
+              ref={fallbackInputRef}
+              readOnly
+              value={shareUrl}
+              onFocus={(e) => e.target.select()}
+              className="w-full px-3 py-2.5 rounded-lg border border-[var(--color-border)] text-xs font-mono text-[var(--color-fg)] bg-[var(--color-bg)]"
+            />
+          </div>
+        )}
+
         {/* 공유 / 저장 버튼 */}
         <button
-          onClick={() => {}}
+          onClick={handleCopyLink}
           className="w-full py-3.5 rounded-lg text-sm font-medium border border-[var(--color-border)] text-[var(--color-fg)] bg-transparent cursor-pointer"
         >
           공유 링크 복사
