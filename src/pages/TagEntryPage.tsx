@@ -81,7 +81,14 @@ export default function TagEntryPage() {
     case 'loading':
       return <LoadingSpinner />;
     case 'not_found':
-      return <TagNotFoundScreen />;
+      return (
+        <TagNotFoundScreen
+          onRetry={() => {
+            setState({ type: 'loading' });
+            setRetryKey((k) => k + 1);
+          }}
+        />
+      );
     case 'network_error':
       return (
         <NetworkErrorScreen
