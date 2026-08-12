@@ -66,6 +66,11 @@ export interface ChatHistoryResponse {
 
 export type ChatPresetType = "care" | "style" | "heritage";
 
+export interface TransferCodeResponse {
+  code: string;       // 12자 대문자+숫자
+  expiresAt: string;  // ISO 8601
+}
+
 // 에러 코드
 // TAG_NOT_RELEASED, RATE_LIMITED 협의 필요: 방어적 구현
 export type ApiErrorCode =

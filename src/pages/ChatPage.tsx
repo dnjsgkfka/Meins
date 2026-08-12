@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { useOutletContext, useParams } from 'react-router';
+import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router';
 import type { ChatCredits, ChatMessage, ChatPresetType, OwnerMeResponse } from '../types/api';
 import { fetchChatHistory } from '../api/tags';
 import { streamChat } from '../api/streaming';
 import { getToken } from '../lib/ownerToken';
 import { useToast } from '../lib/toast';
-import BottomTabBar from '../components/BottomTabBar';
+import PageHeader from '../components/PageHeader';
+import { IconHome, IconOwnership, IconChat } from '../components/Icons';
 
 type LocalMessage = ChatMessage & { aborted?: boolean };
 
@@ -15,10 +16,18 @@ const PRESETS: { type: ChatPresetType; label: string; text: string }[] = [
   { type: 'heritage', label: '헤리티지', text: '이 제품에 담긴 이야기가 궁금해요.' },
 ];
 
+const TABS = [
+  { label: '홈', segment: 'home', Icon: IconHome },
+  { label: '소유권', segment: 'ownership', Icon: IconOwnership },
+  { label: '챗', segment: 'chat', Icon: IconChat },
+] as const;
+
 export default function ChatPage() {
   const { tagCode } = useParams<{ tagCode: string }>();
-  useOutletContext<OwnerMeResponse>();
+  const data = useOutletContext<OwnerMeResponse>();
   const { showToast } = useToast();
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(true);
   const [messages, setMessages] = useState<LocalMessage[]>([]);
@@ -26,12 +35,11 @@ export default function ChatPage() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [activePreset, setActivePreset] = useState<ChatPresetType | null>(null);
   const [inputText, setInputText] = useState('');
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const isNearBottomRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
-  // iOS 키보드 대응 — 실기기 테스트 필요
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
 
   useEffect(() => {
     if (!tagCode) return;
@@ -56,7 +64,6 @@ export default function ChatPage() {
     return () => { cancelled = true; };
   }, [tagCode, showToast]);
 
-  // iOS 키보드 대응: visualViewport 높이 변화 → 레이아웃 높이 축소 — 실기기 테스트 필요
   useEffect(() => {
     const vv = window.visualViewport;
     if (!vv) return;
@@ -67,7 +74,6 @@ export default function ChatPage() {
     return () => vv.removeEventListener('resize', onResize);
   }, []);
 
-  // 메시지 변경 시 바닥 근처 자동 스크롤
   useEffect(() => {
     if (isNearBottomRef.current && scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
@@ -89,11 +95,7 @@ export default function ChatPage() {
     if (newRemaining === 0) {
       setMessages((prev) => [
         ...prev,
-        {
-          role: 'assistant' as const,
-          content: '오늘 나눌 수 있는 대화는 여기까지입니다.',
-          createdAt: new Date().toISOString(),
-        },
+        { role: 'assistant' as const, content: '오늘 나눌 수 있는 대화는 여기까지입니다.', createdAt: new Date().toISOString() },
       ]);
     }
   }
@@ -106,7 +108,6 @@ export default function ChatPage() {
     const userMsg: LocalMessage = { role: 'user', content: text, createdAt: now };
     const assistantMsg: LocalMessage = { role: 'assistant', content: '', createdAt: now };
 
-    // 사용자 버블 + 빈 어시스턴트 버블 즉시 추가
     const prevMessages = messages;
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
     setInputText('');
@@ -126,11 +127,9 @@ export default function ChatPage() {
           return updated;
         });
       }
-      // 정상 완료 — 크레딧 차감 (소진 시 안내 메시지 추가)
       chargeCredit();
     } catch (err) {
       if ((err as Error).name === 'AbortError') {
-        // 중단 — 버블 유지, "중단됨" 표시, 크레딧 차감
         setMessages((prev) => {
           const updated = [...prev];
           updated[updated.length - 1] = { ...updated[updated.length - 1], aborted: true };
@@ -138,7 +137,6 @@ export default function ChatPage() {
         });
         chargeCredit();
       } else {
-        // 네트워크 실패 — 버블 제거, 입력 복원, 크레딧 미차감
         showToast('메시지 전송에 실패했습니다.');
         setMessages(prevMessages);
         if (!preset) setInputText(text);
@@ -150,47 +148,74 @@ export default function ChatPage() {
     }
   }
 
+  const keyboardOpen = keyboardOffset > 0;
+  const productName = data?.product?.name ?? '';
+
   return (
     <div
       className="flex flex-col"
-      style={{ height: `calc(100dvh - ${keyboardOffset}px)` }}
+      style={{
+        minHeight: '100dvh',
+        backgroundColor: 'var(--color-tint)',
+        height: `calc(100dvh - ${keyboardOffset}px)`,
+      }}
     >
-      {/* 헤더 */}
-      <div className="px-4 py-3 border-b border-[var(--color-border)] shrink-0">
-        <p className="m-0 text-xs text-[var(--color-muted)] tracking-widest uppercase">{tagCode}</p>
-      </div>
+      <PageHeader title="챗" />
 
-      {/* 메시지 영역 */}
+      {/* 메시지 스크롤 영역 */}
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-4 py-4 pb-6 flex flex-col gap-3"
+        className="flex-1 overflow-y-auto flex flex-col gap-2 px-2"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top) + 56px)',
+          paddingBottom: keyboardOpen ? 180 : 228,
+        }}
       >
         {isLoading ? (
           <>
-            <SkeletonBubble side="left" width="w-3/5" />
-            <SkeletonBubble side="right" width="w-2/5" />
-            <SkeletonBubble side="left" width="w-4/5" />
+            <SkeletonBubble side="left" />
+            <SkeletonBubble side="right" />
+            <SkeletonBubble side="left" />
           </>
         ) : (
-          messages.map((msg, i) => (
-            <MessageBubble key={i} message={msg} aborted={msg.aborted} />
-          ))
+          <>
+            {/* 웰컴 메시지 - 항상 첫 번째로 표시 */}
+            <MessageBubble
+              message={{
+                role: 'assistant',
+                content: `안녕하세요, 당신의 MCM AI 어시스턴트입니다.\n${productName}에 대해 궁금한 점이 있다면 무엇이든 물어보세요.`,
+                createdAt: '',
+              }}
+            />
+            {messages.map((msg, i) => (
+              <MessageBubble key={i} message={msg} aborted={msg.aborted} isStreaming={isStreaming && i === messages.length - 1 && msg.role === 'assistant'} />
+            ))}
+          </>
         )}
       </div>
 
-      {/* 하단 — 프리셋 칩 + 입력창 */}
-      <div className="shrink-0 border-t border-[var(--color-border)] pb-[env(safe-area-inset-bottom)]">
-        {/* 잔여 크레딧 안내 — remaining ≤ 2일 때만 표시 */}
+      {/* 하단 고정 영역 */}
+      <div
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20 flex flex-col gap-4 px-2"
+        style={{
+          background: 'linear-gradient(180deg, rgba(240,240,240,0) 0%, rgba(240,240,240,1) 100%)',
+          backdropFilter: 'blur(1.5px)',
+          WebkitBackdropFilter: 'blur(1.5px)',
+          paddingTop: 48,
+          paddingBottom: keyboardOpen ? 'max(8px, env(safe-area-inset-bottom))' : 'max(34px, env(safe-area-inset-bottom))',
+        }}
+      >
+        {/* 크레딧 안내 */}
         {!isLoading && credits.remaining <= 2 && (
-          <p className="m-0 px-4 pt-3 text-xs text-[var(--color-muted)]">
+          <p className="m-0 text-xs text-[var(--color-muted)]">
             오늘 남은 대화: {credits.remaining}회
             {credits.resetAt && ` · ${formatResetIn(credits.resetAt)}`}
           </p>
         )}
 
         {/* 프리셋 칩 */}
-        <div className="flex gap-2 px-4 pt-3 pb-2 overflow-x-auto">
+        <div className="flex gap-1">
           {PRESETS.map((preset) => {
             const isActive = isStreaming && activePreset === preset.type;
             const isDisabled = credits.remaining === 0 || (isStreaming && activePreset !== preset.type);
@@ -203,13 +228,15 @@ export default function ChatPage() {
                   handleSend(preset.text, preset.type);
                 }}
                 className={[
-                  'shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium border transition-colors',
+                  'flex-1 py-1.5 px-[10px] rounded-full text-sm border-none transition-colors',
+                  'shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)]',
                   isActive
-                    ? 'bg-[var(--color-accent)] text-[var(--color-bg)] border-[var(--color-accent)]'
+                    ? 'bg-[var(--color-accent)] text-[var(--color-bg)] cursor-pointer'
                     : isDisabled
-                    ? 'border-[var(--color-border)] text-[var(--color-muted)] opacity-40 cursor-not-allowed'
-                    : 'border-[var(--color-border)] text-[var(--color-fg)] cursor-pointer',
+                    ? 'text-white cursor-not-allowed opacity-50'
+                    : 'text-white cursor-pointer',
                 ].join(' ')}
+                style={!isActive ? { backgroundColor: '#BFBFBF' } : {}}
               >
                 {preset.label}
               </button>
@@ -217,8 +244,8 @@ export default function ChatPage() {
           })}
         </div>
 
-        {/* 입력창 + 전송/중단 버튼 */}
-        <div className="flex items-end gap-2 px-4 py-3">
+        {/* 입력창 + 전송/중단 */}
+        <div className="flex items-end gap-2">
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -230,19 +257,20 @@ export default function ChatPage() {
             }}
             disabled={isStreaming || credits.remaining === 0}
             rows={1}
-            placeholder={credits.remaining === 0 ? '오늘 대화 한도에 도달했습니다.' : '메시지를 입력하세요...'}
+            placeholder={credits.remaining === 0 ? '오늘 대화 한도에 도달했습니다.' : '무엇이든 물어보세요.'}
             className={[
-              'flex-1 resize-none rounded-2xl border px-4 py-2.5 text-sm leading-relaxed',
+              'flex-1 resize-none rounded-[24px] px-2 py-3 text-sm leading-[1.4em] tracking-[0.04em] border-none outline-none',
               'bg-[var(--color-bg)] text-[var(--color-fg)] placeholder:text-[var(--color-muted)]',
-              'border-[var(--color-border)] outline-none focus:border-[var(--color-accent)]',
-              'transition-colors max-h-32 overflow-y-auto',
+              'shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)]',
+              'max-h-32 overflow-y-auto transition-opacity',
               (isStreaming || credits.remaining === 0) ? 'opacity-50 cursor-not-allowed' : '',
             ].join(' ')}
           />
           {isStreaming ? (
             <button
               onClick={handleStop}
-              className="shrink-0 w-10 h-10 rounded-full bg-[var(--color-accent)] text-[var(--color-bg)] flex items-center justify-center cursor-pointer"
+              className="shrink-0 w-11 h-11 rounded-full text-white flex items-center justify-center cursor-pointer border-none shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)]"
+              style={{ backgroundColor: '#2D2D2D' }}
               aria-label="중단"
             >
               <span className="block w-3 h-3 rounded-sm bg-current" />
@@ -252,22 +280,46 @@ export default function ChatPage() {
               onClick={() => handleSend(inputText)}
               disabled={!inputText.trim() || credits.remaining === 0}
               className={[
-                'shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors',
+                'shrink-0 w-11 h-11 rounded-full flex items-center justify-center transition-colors border-none',
+                'shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)]',
                 inputText.trim() && credits.remaining > 0
-                  ? 'bg-[var(--color-accent)] text-[var(--color-bg)] cursor-pointer'
-                  : 'bg-[var(--color-border)] text-[var(--color-muted)] cursor-not-allowed',
+                  ? 'cursor-pointer text-white'
+                  : 'cursor-not-allowed text-white',
               ].join(' ')}
+              style={{ backgroundColor: inputText.trim() && credits.remaining > 0 ? '#2D2D2D' : '#BFBFBF' }}
               aria-label="전송"
             >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 14V2M2 8l6-6 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <svg width="7" height="12" viewBox="0 0 7 12" fill="none" aria-hidden="true">
+                <path d="M1 11L6 6L1 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
           )}
         </div>
-      </div>
 
-      <BottomTabBar tagCode={tagCode!} />
+        {/* 탭바 (키보드 닫혔을 때만 표시) */}
+        {!keyboardOpen && (
+          <div className="flex justify-center">
+            <div className="flex items-center gap-2 p-1 rounded-full bg-[var(--color-bg)] shadow-tapbar">
+              {TABS.map(({ label, segment, Icon }) => {
+                const isActive = location.pathname === `/t/${tagCode}/${segment}`;
+                return (
+                  <button
+                    key={segment}
+                    onClick={() => navigate(`/t/${tagCode}/${segment}`)}
+                    aria-label={label}
+                    className={[
+                      'flex items-center justify-center w-[70px] h-[47px] rounded-full transition-colors cursor-pointer border-none bg-transparent',
+                      isActive ? 'bg-[var(--color-tint)]' : '',
+                    ].join(' ')}
+                  >
+                    <Icon active={isActive} />
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -275,23 +327,34 @@ export default function ChatPage() {
 export function MessageBubble({
   message,
   aborted,
+  isStreaming,
 }: {
   message: ChatMessage;
   aborted?: boolean;
+  isStreaming?: boolean;
 }) {
   const isUser = message.role === 'user';
   return (
-    <div className={`flex flex-col gap-1 ${isUser ? 'items-end' : 'items-start'}`}>
-      <div
-        className={[
-          'max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap',
-          isUser
-            ? 'bg-[var(--color-accent)] text-[var(--color-bg)] rounded-br-sm'
-            : 'bg-[var(--color-border)] text-[var(--color-fg)] rounded-bl-sm',
-        ].join(' ')}
-      >
-        {message.content}
-      </div>
+    <div className="flex flex-col gap-0.5">
+      {isUser ? (
+        <div className="w-full p-2 rounded-lg" style={{ backgroundColor: '#2D2D2D' }}>
+          <p className="m-0 text-sm text-white leading-[1.4em] tracking-[0.04em] whitespace-pre-wrap">
+            {message.content}
+          </p>
+        </div>
+      ) : (
+        <div className="w-full p-2 rounded-lg bg-[var(--color-bg)] flex flex-col gap-0.5">
+          <p className="m-0 text-xs text-[var(--color-muted)] leading-[1.4em] tracking-[0.04em]">
+            Meins Collection Manager
+          </p>
+          <p
+            className="m-0 text-sm leading-[1.4em] tracking-[0.04em] whitespace-pre-wrap"
+            style={{ color: '#111111' }}
+          >
+            {message.content || (isStreaming ? '답변을 생성하고 있습니다...' : '')}
+          </p>
+        </div>
+      )}
       {aborted && (
         <span className="text-[10px] text-[var(--color-muted)] px-1">중단됨</span>
       )}
@@ -308,10 +371,10 @@ function formatResetIn(resetAt: string): string {
   return `${m}분 후 회복`;
 }
 
-function SkeletonBubble({ side, width }: { side: 'left' | 'right'; width: string }) {
+function SkeletonBubble({ side }: { side: 'left' | 'right' }) {
   return (
     <div className={`flex ${side === 'right' ? 'justify-end' : 'justify-start'}`}>
-      <div className={`${width} h-10 rounded-2xl shimmer`} />
+      <div className={`${side === 'right' ? 'w-2/5' : 'w-3/5'} h-10 rounded-lg shimmer`} />
     </div>
   );
 }

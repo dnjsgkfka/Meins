@@ -1,80 +1,63 @@
-import { useEffect, useState } from 'react';
-import CodeInputField from './CodeInputField';
+import { useNavigate } from 'react-router';
+import PageHeader from '../PageHeader';
 
 interface Props {
   lockedUntil: string;
+  tagCode: string;
 }
 
-function getRemainingMs(lockedUntil: string): number {
-  return Math.max(0, new Date(lockedUntil).getTime() - Date.now());
+function formatLockedUntil(lockedUntil: string): string {
+  const d = new Date(lockedUntil);
+  const yy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${yy}-${mm}-${dd} ${hh}:${min}`;
 }
 
-function formatRemaining(ms: number): string {
-  if (ms <= 0) return '잠금이 해제되었습니다. 페이지를 새로고침해 주세요.';
-
-  const totalSec = Math.ceil(ms / 1000);
-  const h = Math.floor(totalSec / 3600);
-  const m = Math.floor((totalSec % 3600) / 60);
-  const s = totalSec % 60;
-
-  if (h > 0) return `${h}시간 ${m}분 후 다시 시도할 수 있습니다`;
-  if (m > 0) return `${m}분 ${s}초 후 다시 시도할 수 있습니다`;
-  return `${s}초 후 다시 시도할 수 있습니다`;
-}
-
-export default function LockedScreen({ lockedUntil }: Props) {
-  const [remainingMs, setRemainingMs] = useState(() => getRemainingMs(lockedUntil));
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRemainingMs(getRemainingMs(lockedUntil));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [lockedUntil]);
+export default function LockedScreen({ lockedUntil, tagCode }: Props) {
+  const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col gap-6 px-4 pt-8 pb-6">
-      {/* 헤더 */}
-      <div className="flex flex-col gap-1.5">
-        <h1 className="m-0 text-2xl font-semibold text-[var(--color-fg)]">소유자 등록</h1>
-        <p className="m-0 text-sm text-[var(--color-muted)] leading-relaxed">
-          제품에 동봉된 인증 카드의 코드를 입력해 주세요.
+    <div className="min-h-dvh" style={{ backgroundColor: 'var(--color-tint)' }}>
+      <PageHeader title="소유자 등록" onBack={() => navigate(-1)} />
+
+      <div
+        className="flex flex-col gap-2 px-2"
+        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 68px)' }}
+      >
+        <h1 className="m-0 text-2xl font-normal text-[var(--color-fg)]">
+          입력이 일시적으로 제한되었습니다
+        </h1>
+        <p className="m-0 text-xs text-[var(--color-muted)] leading-[1.4em] tracking-[0.04em]">
+          {formatLockedUntil(lockedUntil)} 에 다시 시도 가능합니다.
         </p>
       </div>
 
-      {/* 비활성 코드 입력 블록 */}
-      <CodeInputField
-        value=""
-        onChange={() => {}}
-        onComplete={() => {}}
-        disabled
-      />
-
-      {/* 잠금 안내 */}
-      <div className="flex flex-col gap-1 p-4 bg-[var(--color-danger)]/10 rounded-lg border border-[var(--color-danger)]/30">
-        <p className="m-0 text-sm font-medium text-[var(--color-danger)]">
-          인증 코드가 잠겼습니다
-        </p>
-        <p className="m-0 text-sm text-[var(--color-muted)]">
-          {formatRemaining(remainingMs)}
-        </p>
+      <div
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20 flex flex-col items-center gap-2 px-2"
+        style={{
+          background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--color-tint) 40%)',
+          backdropFilter: 'blur(1.5px)',
+          WebkitBackdropFilter: 'blur(1.5px)',
+          paddingTop: 16,
+          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+        }}
+      >
+        <button
+          className="text-xs text-[var(--color-fg)] underline bg-transparent border-none cursor-pointer tracking-[0.04em]"
+          onClick={() => {}}
+        >
+          코드를 찾을 수 없나요?
+        </button>
+        <button
+          onClick={() => navigate(`/t/${tagCode}`, { replace: true })}
+          className="w-full h-11 rounded-full text-sm bg-[var(--color-accent)] text-[var(--color-bg)] border-none cursor-pointer"
+        >
+          게스트 화면으로 돌아가기
+        </button>
       </div>
-
-      {/* 비활성 제출 버튼 */}
-      <button
-        disabled
-        className="w-full py-3.5 rounded-lg text-sm font-medium bg-[var(--color-border)] text-[var(--color-muted)] cursor-not-allowed"
-      >
-        확인
-      </button>
-
-      {/* 고객센터 문의 */}
-      <a
-        href="#"
-        className="block w-full py-3.5 rounded-lg text-sm font-medium text-center border border-[var(--color-border)] text-[var(--color-fg)] no-underline"
-      >
-        고객센터 문의하기
-      </a>
     </div>
   );
 }

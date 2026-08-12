@@ -15,12 +15,12 @@ export default function InfoList({ items }: { items: InfoItem[] }) {
       {visible.map(({ label, value }) => (
         <div
           key={label}
-          className="flex gap-4 py-2.5 border-b border-[var(--color-border)]"
+          className="flex items-center justify-between py-3 border-b border-[var(--color-icon-inactive)]"
         >
-          <dt className="text-sm text-[var(--color-muted)] min-w-[5.5rem] shrink-0">
+          <dt className="shrink-0 text-sm text-[var(--color-muted)]" style={{ width: 82 }}>
             {label}
           </dt>
-          <dd className="m-0 text-sm text-[var(--color-fg)]">{value}</dd>
+          <dd className="m-0 text-sm text-[var(--color-fg)] text-right">{value}</dd>
         </div>
       ))}
     </dl>

@@ -75,11 +75,11 @@ export default function TagEntryPage() {
     return () => { cancelled = true; };
   }, [tagCode, navigate, retryKey]);
 
-  if (showLoading) return <LoadingSpinner />;
+  if (showLoading) return <LoadingSpinner tagCode={tagCode} />;
 
   switch (state.type) {
     case 'loading':
-      return <LoadingSpinner />;
+      return <LoadingSpinner tagCode={tagCode} />;
     case 'not_found':
       return (
         <TagNotFoundScreen

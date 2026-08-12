@@ -4,6 +4,8 @@ import {
   getOwnerMe,
   getChatHistory,
   postChat,
+  postTransferCode,
+  deleteTransferCode,
 } from './handlers';
 
 export async function mockDispatch<T>(path: string, options: RequestInit): Promise<T> {
@@ -34,6 +36,14 @@ export async function mockDispatch<T>(path: string, options: RequestInit): Promi
   // POST /tags/{tagCode}/chat
   m = path.match(/^\/tags\/([^/]+)\/chat$/);
   if (method === 'POST' && m) return postChat(m[1], body) as Promise<T>;
+
+  // POST /tags/{tagCode}/transfer
+  m = path.match(/^\/tags\/([^/]+)\/transfer$/);
+  if (method === 'POST' && m) return postTransferCode(m[1]) as Promise<T>;
+
+  // DELETE /tags/{tagCode}/transfer
+  m = path.match(/^\/tags\/([^/]+)\/transfer$/);
+  if (method === 'DELETE' && m) return deleteTransferCode(m[1]) as Promise<T>;
 
   throw new Error(`[Mock] Unhandled: ${method} ${path}`);
 }

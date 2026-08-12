@@ -5,6 +5,7 @@ import type {
   VerifyOwnershipRequest,
   VerifyOwnershipResponse,
   ChatHistoryResponse,
+  TransferCodeResponse,
 } from '../../types/api';
 
 const delay = () =>
@@ -41,7 +42,9 @@ export async function getTagDetail(tagCode: string): Promise<TagDetailResponse> 
     tagCode,
     product: mockProduct,
     official: mockOfficial,
-    ownership: { registered: false, registeredAt: null },
+    ownership: tagCode.startsWith('REG')
+      ? { registered: true, registeredAt: '2024-06-01T09:00:00.000Z' }
+      : { registered: false, registeredAt: null },
   };
 }
 
@@ -142,6 +145,18 @@ export async function* mockStreamChat(
       signal.addEventListener('abort', () => { clearTimeout(t); reject(new DOMException('Aborted', 'AbortError')); }, { once: true });
     });
   }
+}
+
+export async function postTransferCode(_tagCode: string): Promise<TransferCodeResponse> {
+  await delay();
+  return {
+    code: 'F26T59QR9D3K',
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+  };
+}
+
+export async function deleteTransferCode(_tagCode: string): Promise<void> {
+  await delay();
 }
 
 // TODO: 실서버에 card.png 엔드포인트 배포 시 확인 필요
