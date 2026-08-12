@@ -46,7 +46,7 @@ export default function GuestViewPage({ tagCode, data }: Props) {
         <div>
           <InfoList
             items={[
-              { label: '소유 등록', value: ownership.registered ? formatDateTime(ownership.registeredAt) : '미등록' },
+              { label: '소유 등록', value: ownership.registered ? formatDateTime(ownership.registeredAt!) : '미등록' },
               { label: '제조연월', value: official.manufacturedAt },
               { label: '판매 등록', value: official.releasedAt },
               { label: '소재', value: product.material },
