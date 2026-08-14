@@ -4,7 +4,38 @@ import PageHeader from '../components/PageHeader';
 import BottomTabBar from '../components/BottomTabBar';
 import ProductHero from '../components/product/ProductHero';
 import InfoList from '../components/product/InfoList';
+import type { InfoGroup } from '../components/product/InfoList';
 import { formatSize, formatDateTime } from '../lib/format';
+
+function ownerInfoGroups(
+  tagCode: string,
+  record: OwnerMeResponse['record'],
+  official: OwnerMeResponse['official'],
+  product: OwnerMeResponse['product'],
+): InfoGroup[] {
+  return [
+    { section: '등록 코드', items: [{ value: tagCode }] },
+    { section: '등록 시각', items: [{ value: formatDateTime(record.registeredAt) }] },
+    {
+      section: '공식 출처',
+      items: [
+        { label: '제조연월', value: official.manufacturedAt },
+        { label: '판매 등록', value: official.releasedAt },
+        ...(product.productUrl
+          ? [{ label: '제품 링크', value: '제품 상세 페이지', href: product.productUrl }]
+          : []),
+      ],
+    },
+    {
+      section: '제품 정보',
+      items: [
+        { label: '소재', value: product.material },
+        { label: '사이즈', value: formatSize(product.size) },
+        { label: '색상', value: product.color },
+      ],
+    },
+  ];
+}
 
 export default function OwnerHomePage() {
   const { tagCode } = useParams<{ tagCode: string }>();
@@ -39,15 +70,7 @@ export default function OwnerHomePage() {
         {/* 정보 목록 */}
         <div>
           <InfoList
-            items={[
-              { label: '등록 코드', value: tagCode },
-              { label: '등록 시각', value: formatDateTime(record.registeredAt) },
-              { label: '제조연월', value: official.manufacturedAt },
-              { label: '판매 등록', value: official.releasedAt },
-              { label: '소재', value: product.material },
-              { label: '사이즈', value: formatSize(product.size) },
-              { label: '색상', value: product.color },
-            ]}
+            groups={ownerInfoGroups(tagCode!, record, official, product)}
           />
           <p className="m-0 mt-3 text-xs text-[var(--color-muted)] tracking-[0.04em]">
             브랜드에서 제공하는 공식 데이터입니다.

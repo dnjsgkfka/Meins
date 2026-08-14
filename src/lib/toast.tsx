@@ -26,7 +26,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       const id = crypto.randomUUID();
       setTimeout(() => {
         setToasts((curr) => curr.filter((t) => t.id !== id));
-      }, 5000);
+      }, 2500);
 
       return [...prev, { id, message }];
     });

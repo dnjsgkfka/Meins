@@ -83,10 +83,7 @@ export default function TagEntryPage() {
     case 'not_found':
       return (
         <TagNotFoundScreen
-          onRetry={() => {
-            setState({ type: 'loading' });
-            setRetryKey((k) => k + 1);
-          }}
+          onRetry={() => navigate('/')}
         />
       );
     case 'network_error':

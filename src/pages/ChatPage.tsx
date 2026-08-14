@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useOutletContext, useParams } from 'react-router';
+import { useOutletContext, useParams } from 'react-router';
 import type { ChatCredits, ChatMessage, ChatPresetType, OwnerMeResponse } from '../types/api';
 import { fetchChatHistory } from '../api/tags';
 import { streamChat } from '../api/streaming';
 import { getToken } from '../lib/ownerToken';
 import { useToast } from '../lib/toast';
 import PageHeader from '../components/PageHeader';
-import { IconHome, IconOwnership, IconChat } from '../components/Icons';
+import BottomTabBar from '../components/BottomTabBar';
 
 type LocalMessage = ChatMessage & { aborted?: boolean };
 
@@ -16,18 +16,10 @@ const PRESETS: { type: ChatPresetType; label: string; text: string }[] = [
   { type: 'heritage', label: '헤리티지', text: '이 제품에 담긴 이야기가 궁금해요.' },
 ];
 
-const TABS = [
-  { label: '홈', segment: 'home', Icon: IconHome },
-  { label: '소유권', segment: 'ownership', Icon: IconOwnership },
-  { label: '챗', segment: 'chat', Icon: IconChat },
-] as const;
-
 export default function ChatPage() {
   const { tagCode } = useParams<{ tagCode: string }>();
   const data = useOutletContext<OwnerMeResponse>();
   const { showToast } = useToast();
-  const location = useLocation();
-  const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(true);
   const [messages, setMessages] = useState<LocalMessage[]>([]);
@@ -37,9 +29,16 @@ export default function ChatPage() {
   const [inputText, setInputText] = useState('');
   const [keyboardOffset, setKeyboardOffset] = useState(0);
 
+  // BottomTabBar 높이: paddingTop(16) + tabbar(~55) + paddingBottom(16) ≈ 87px
+  const TAB_BAR_HEIGHT = 87;
+
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isNearBottomRef = useRef(true);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // body1 (14px * 1.4em) * 4줄 + py-3(24px) = 102.4px
+  const TEXTAREA_MAX_HEIGHT = 104;
 
   useEffect(() => {
     if (!tagCode) return;
@@ -79,6 +78,13 @@ export default function ChatPage() {
       scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
     }
   }, [messages]);
+
+  // 텍스트 지워지면 textarea 높이 초기화
+  useEffect(() => {
+    if (!inputText && textareaRef.current) {
+      textareaRef.current.style.height = '';
+    }
+  }, [inputText]);
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     const { scrollHeight, scrollTop, clientHeight } = e.currentTarget;
@@ -166,10 +172,10 @@ export default function ChatPage() {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto flex flex-col gap-2 px-2"
+        className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-2 px-2"
         style={{
           paddingTop: 'calc(env(safe-area-inset-top) + 56px)',
-          paddingBottom: keyboardOpen ? 180 : 228,
+          paddingBottom: keyboardOpen ? 180 : 200,
         }}
       >
         {isLoading ? (
@@ -195,15 +201,17 @@ export default function ChatPage() {
         )}
       </div>
 
-      {/* 하단 고정 영역 */}
+      {/* 입력 고정 영역 (탭바 제외) */}
       <div
         className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20 flex flex-col gap-4 px-2"
         style={{
           background: 'linear-gradient(180deg, rgba(240,240,240,0) 0%, rgba(240,240,240,1) 100%)',
           backdropFilter: 'blur(1.5px)',
           WebkitBackdropFilter: 'blur(1.5px)',
-          paddingTop: 48,
-          paddingBottom: keyboardOpen ? 'max(8px, env(safe-area-inset-bottom))' : 'max(34px, env(safe-area-inset-bottom))',
+          paddingTop: 36,
+          paddingBottom: keyboardOpen
+            ? 'max(8px, env(safe-area-inset-bottom))'
+            : TAB_BAR_HEIGHT,
         }}
       >
         {/* 크레딧 안내 */}
@@ -247,8 +255,14 @@ export default function ChatPage() {
         {/* 입력창 + 전송/중단 */}
         <div className="flex items-end gap-2">
           <textarea
+            ref={textareaRef}
             value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
+            onChange={(e) => {
+              setInputText(e.target.value);
+              const el = e.target;
+              el.style.height = 'auto';
+              el.style.height = Math.min(el.scrollHeight, TEXTAREA_MAX_HEIGHT) + 'px';
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
                 e.preventDefault();
@@ -262,7 +276,7 @@ export default function ChatPage() {
               'flex-1 resize-none rounded-[24px] px-2 py-3 text-sm leading-[1.4em] tracking-[0.04em] border-none outline-none',
               'bg-[var(--color-bg)] text-[var(--color-fg)] placeholder:text-[var(--color-muted)]',
               'shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)]',
-              'max-h-32 overflow-y-auto transition-opacity',
+              'overflow-y-auto no-scrollbar transition-opacity',
               (isStreaming || credits.remaining === 0) ? 'opacity-50 cursor-not-allowed' : '',
             ].join(' ')}
           />
@@ -295,31 +309,10 @@ export default function ChatPage() {
             </button>
           )}
         </div>
-
-        {/* 탭바 (키보드 닫혔을 때만 표시) */}
-        {!keyboardOpen && (
-          <div className="flex justify-center">
-            <div className="flex items-center gap-2 p-1 rounded-full bg-[var(--color-bg)] shadow-tapbar">
-              {TABS.map(({ label, segment, Icon }) => {
-                const isActive = location.pathname === `/t/${tagCode}/${segment}`;
-                return (
-                  <button
-                    key={segment}
-                    onClick={() => navigate(`/t/${tagCode}/${segment}`)}
-                    aria-label={label}
-                    className={[
-                      'flex items-center justify-center w-[70px] h-[47px] rounded-full transition-colors cursor-pointer border-none bg-transparent',
-                      isActive ? 'bg-[var(--color-tint)]' : '',
-                    ].join(' ')}
-                  >
-                    <Icon active={isActive} />
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* 탭바 - 홈/소유권과 동일한 컴포넌트, 키보드 열릴 때 숨김 */}
+      {!keyboardOpen && <BottomTabBar tagCode={tagCode!} />}
     </div>
   );
 }

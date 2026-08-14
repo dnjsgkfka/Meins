@@ -1,3 +1,5 @@
+import Logo from './Logo';
+
 interface Props {
   title: string;
   onBack?: () => void;
@@ -24,8 +26,8 @@ export default function PageHeader({ title, onBack }: Props) {
             </svg>
           </button>
         ) : (
-          <div className="shrink-0 flex items-center" style={{ width: 82, height: 16 }}>
-            <span className="text-sm font-bold tracking-[0.18em] text-[var(--color-fg)]">MCM</span>
+          <div className="shrink-0 flex items-center text-[var(--color-fg)]" style={{ width: 82, height: 16 }}>
+            <Logo />
           </div>
         )}
         <p className="m-0 text-base font-normal text-[var(--color-fg)]">{title}</p>

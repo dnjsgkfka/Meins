@@ -35,14 +35,15 @@ const attemptCounters = new Map<string, number>();
 
 export async function getTagDetail(tagCode: string): Promise<TagDetailResponse> {
   await delay();
-  if (tagCode.startsWith('NOTFOUND')) {
+  if (tagCode.startsWith('NOTFOUND') || tagCode === '0000-0000') {
     throw new ApiError({ code: 'TAG_NOT_FOUND', message: '태그를 찾을 수 없습니다.' });
   }
+  const isRegistered = tagCode.startsWith('REG') || tagCode === 'B2C3-D4E5';
   return {
     tagCode,
     product: mockProduct,
     official: mockOfficial,
-    ownership: tagCode.startsWith('REG')
+    ownership: isRegistered
       ? { registered: true, registeredAt: '2024-06-01T09:00:00.000Z' }
       : { registered: false, registeredAt: null },
   };
