@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react';
 
-// 0, O, 1, I 제외한 허용 문자
 const ALLOWED = /^[A-HJ-NP-Z2-9]$/;
 
 function filterString(raw: string): string {
@@ -30,12 +29,10 @@ export default function CodeInputField({
   const inputRef = useRef<HTMLInputElement>(null);
   const [focused, setFocused] = useState(false);
 
-  // 입력값 길이로 활성 블록 인덱스 결정 (0-3: 첫 블록, 4-7: 둘째, 8-11: 셋째)
   const activeBlock = value.length >= 12 ? -1 : Math.floor(value.length / 4);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const filtered = filterString(e.target.value).slice(0, 12);
-    // 브라우저 input value 직접 보정 (IME 등 우회)
     e.target.value = filtered;
     onChange(filtered);
     if (filtered.length === 12) onComplete(filtered);
@@ -74,34 +71,41 @@ export default function CodeInputField({
         style={{ caretColor: 'transparent' }}
       />
 
-      {/* 표시용 박스 */}
-      <div className="flex gap-3 pointer-events-none">
+      {/* 표시용 블록 3개 */}
+      <div className="flex gap-1 pointer-events-none">
         {[0, 1, 2].map((blockIdx) => {
           const chars = value.slice(blockIdx * 4, blockIdx * 4 + 4);
           const isActive = focused && activeBlock === blockIdx && !disabled;
+          const isFilled = chars.length > 0;
+
+          const bgClass = hasError
+            ? 'bg-[var(--color-bg)] border border-[var(--color-danger)]'
+            : isActive || isFilled
+            ? 'bg-[var(--color-bg)]'
+            : 'bg-[var(--color-icon-inactive)]';
 
           return (
             <div
               key={blockIdx}
               className={[
-                'flex-1 h-14 flex items-center justify-center rounded-lg border-2 transition-colors',
-                hasError
-                  ? 'border-[var(--color-danger)] bg-[var(--color-danger)]/10'
-                  : isActive
-                  ? 'border-[var(--color-accent)]'
-                  : 'border-[var(--color-border)]',
+                'flex-1 h-12 flex items-center justify-center rounded transition-colors',
+                bgClass,
                 disabled ? 'opacity-40' : '',
               ].join(' ')}
             >
-              {chars ? (
-                <span className="text-base font-mono font-semibold tracking-[0.3em] text-[var(--color-fg)]">
-                  {chars}
-                </span>
-              ) : (
-                <span className="text-lg font-mono text-[var(--color-muted)] tracking-[0.4em]">
-                  ····
-                </span>
-              )}
+              <span className="text-2xl" style={{ letterSpacing: '0.2em' }}>
+                {Array.from({ length: 4 }, (_, charIdx) => {
+                  const char = chars[charIdx];
+                  return (
+                    <span
+                      key={charIdx}
+                      style={{ color: char ? 'var(--color-fg)' : 'var(--color-muted)' }}
+                    >
+                      {char || '0'}
+                    </span>
+                  );
+                })}
+              </span>
             </div>
           );
         })}

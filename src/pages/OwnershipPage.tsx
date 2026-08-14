@@ -1,161 +1,214 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useOutletContext, useParams } from 'react-router';
 import type { OwnerMeResponse } from '../types/api';
-import { fetchOwnershipCardBlob } from '../api/tags';
+import { postTransferCode, deleteTransferCode } from '../api/tags';
 import { getToken } from '../lib/ownerToken';
 import { formatDateTime } from '../lib/format';
 import { useToast } from '../lib/toast';
+import PageHeader from '../components/PageHeader';
 import BottomTabBar from '../components/BottomTabBar';
+import ProductHero from '../components/product/ProductHero';
+
+function formatCode(code: string): string {
+  return `${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8, 12)}`;
+}
+
+function formatExpiresAt(iso: string): string {
+  const d = new Date(iso);
+  const yy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${yy}-${mm}-${dd} ${hh}:${min}까지 유효`;
+}
 
 export default function OwnershipPage() {
   const { tagCode } = useParams<{ tagCode: string }>();
   const data = useOutletContext<OwnerMeResponse>();
   const { showToast } = useToast();
-  const [showFallbackUrl, setShowFallbackUrl] = useState(false);
-  const fallbackInputRef = useRef<HTMLInputElement>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
-  const shareUrl = `${window.location.origin}/t/${tagCode}`;
+  const [transferCode, setTransferCode] = useState<string | null>(null);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
 
-  async function handleCopyLink() {
-    // iOS: clipboard API는 사용자 제스처 직후에 동기적으로 호출
+  async function handleOpenTransfer() {
+    if (isGenerating) return;
+    setIsGenerating(true);
+    const token = getToken(tagCode!) ?? '';
     try {
-      await navigator.clipboard.writeText(shareUrl);
-      showToast('링크가 복사되었습니다.');
+      const res = await postTransferCode(tagCode!, token);
+      setTransferCode(res.code);
+      setExpiresAt(res.expiresAt);
     } catch {
-      setShowFallbackUrl(true);
-      // 다음 렌더 후 input을 전체 선택
-      setTimeout(() => {
-        fallbackInputRef.current?.select();
-      }, 0);
+      showToast('양도 코드 발급에 실패했습니다.');
+    } finally {
+      setIsGenerating(false);
     }
   }
 
-  async function handleSaveImage() {
-    if (isSaving) return;
-    setIsSaving(true);
-
-    const token = getToken(tagCode!);
-    let blob: Blob;
+  async function handleCopyCode() {
+    if (!transferCode) return;
     try {
-      blob = await fetchOwnershipCardBlob(tagCode!, token ?? '');
+      await navigator.clipboard.writeText(formatCode(transferCode));
+      showToast('코드가 복사되었습니다.');
     } catch {
-      showToast('이미지 저장에 실패하였습니다.');
-      setIsSaving(false);
-      return;
+      showToast('복사에 실패했습니다. 코드를 직접 선택해 주세요.');
     }
+  }
 
-    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const filename = `MCM_Ownership_${tagCode}_${date}.png`;
-    const file = new File([blob], filename, { type: 'image/png' });
-
-    // 1. 네이티브 공유 시트 (iOS/Android)
-    if (navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file] });
-        setIsSaving(false);
-        return;
-      } catch (e) {
-        if ((e as Error).name === 'AbortError') { setIsSaving(false); return; }
-      }
+  async function handleCancelTransfer() {
+    if (isCanceling) return;
+    setIsCanceling(true);
+    const token = getToken(tagCode!) ?? '';
+    try {
+      await deleteTransferCode(tagCode!, token);
+      setTransferCode(null);
+      setExpiresAt(null);
+    } catch {
+      showToast('양도 취소에 실패했습니다.');
+    } finally {
+      setIsCanceling(false);
     }
-
-    const objectUrl = URL.createObjectURL(blob);
-
-    // 2. <a download>
-    if ('download' in document.createElement('a')) {
-      const a = document.createElement('a');
-      a.href = objectUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
-      setIsSaving(false);
-      return;
-    }
-
-    // 3. 새 탭 열기 (구형 환경 fallback)
-    window.open(objectUrl, '_blank');
-    showToast('이미지를 길게 눌러 저장하세요.');
-    setTimeout(() => URL.revokeObjectURL(objectUrl), 30_000);
-    setIsSaving(false);
   }
 
   return (
-    <div className="pb-20">
-      {/* 헤더 */}
-      <div className="px-4 py-3 border-b border-[var(--color-border)]">
-        <p className="m-0 text-xs text-[var(--color-muted)] tracking-widest uppercase">{tagCode}</p>
-      </div>
+    <div className="min-h-dvh" style={{ backgroundColor: 'var(--color-tint)' }}>
+      <PageHeader title="소유권" />
 
-      <div className="flex flex-col gap-4 p-4">
-        {/* 소유권 카드 */}
-        <div className="flex flex-col gap-3 p-5 rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)]">
-          <div className="flex flex-col gap-0.5">
-            <p className="m-0 text-[10px] font-medium tracking-widest uppercase text-[var(--color-muted)]">
-              MCM Ownership
-            </p>
-            <h2 className="m-0 text-lg font-semibold text-[var(--color-fg)] leading-snug">
-              {data.product.name}
-            </h2>
+      {/* 스크롤 콘텐츠 */}
+      <div
+        className="flex flex-col gap-6 px-2"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top) + 56px)',
+          paddingBottom: 'calc(max(16px, env(safe-area-inset-bottom)) + 87px)',
+        }}
+      >
+        <div className="flex flex-col gap-3">
+          {/* 소유권 카드 */}
+          <div className="flex flex-col gap-3 rounded-lg shadow-ownership py-6 px-2 bg-[var(--color-tint)]">
+            <div className="flex flex-col gap-0.5">
+              <h2 className="m-0 text-2xl font-normal text-[var(--color-fg)] leading-tight">
+                {data.product.name}
+              </h2>
+              <p className="m-0 text-xs text-[var(--color-muted)] tracking-[0.04em]">
+                # {data.product.modelCode}
+              </p>
+            </div>
+
+            <ProductHero src={data.product.heroImage} alt={data.product.name} />
+
+            {/* 등록 정보 - 오른쪽 정렬 284px */}
+            <div className="border-b border-[var(--color-icon-inactive)]" style={{ marginLeft: 'auto', width: 284 }}>
+              {[
+                { label: '등록 코드', value: tagCode ?? '' },
+                { label: '등록 시각', value: formatDateTime(data.record.registeredAt) },
+              ].map(({ label, value }) => (
+                <div
+                  key={label}
+                  className="flex flex-row items-center border-t border-[var(--color-icon-inactive)] py-3"
+                >
+                  <div
+                    className="shrink-0 text-sm text-[var(--color-muted)] tracking-[0.04em] leading-[1.4]"
+                    style={{ width: 81 }}
+                  >
+                    {label}
+                  </div>
+                  <div className="flex-1 text-xs text-[var(--color-fg)] tracking-[0.04em] leading-[1.4]">
+                    {value}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
-          <div className="h-px bg-[var(--color-border)]" />
-
-          <dl className="flex flex-col gap-2 m-0">
-            <div className="flex justify-between items-baseline gap-2">
-              <dt className="text-xs text-[var(--color-muted)] shrink-0">모델 코드</dt>
-              <dd className="m-0 text-xs font-mono text-[var(--color-fg)] text-right">{data.product.modelCode}</dd>
-            </div>
-            <div className="flex justify-between items-baseline gap-2">
-              <dt className="text-xs text-[var(--color-muted)] shrink-0">태그 코드</dt>
-              <dd className="m-0 text-xs font-mono text-[var(--color-fg)] text-right">{tagCode}</dd>
-            </div>
-            <div className="flex justify-between items-baseline gap-2">
-              <dt className="text-xs text-[var(--color-muted)] shrink-0">등록 시각</dt>
-              <dd className="m-0 text-xs text-[var(--color-fg)] text-right">{formatDateTime(data.record.registeredAt)}</dd>
-            </div>
-          </dl>
+          {/* 안내 문구 */}
+          <p className="m-0 text-xs text-[var(--color-muted)] leading-[1.4em] tracking-[0.04em] whitespace-pre-line">
+            {'링크를 받은 사람은 제품 정보와 등록 여부만 볼 수 있습니다.\n소유자 정보와 오너 권한은 포함되지 않습니다.'}
+          </p>
         </div>
 
-        {/* 클립보드 권한 거부 시 수동 복사용 fallback */}
-        {showFallbackUrl && (
-          <div className="flex flex-col gap-1.5">
-            <p className="m-0 text-xs text-[var(--color-muted)]">아래 링크를 직접 복사해 주세요.</p>
-            <input
-              ref={fallbackInputRef}
-              readOnly
-              value={shareUrl}
-              onFocus={(e) => e.target.select()}
-              className="w-full px-3 py-2.5 rounded-lg border border-[var(--color-border)] text-xs font-mono text-[var(--color-fg)] bg-[var(--color-bg)]"
-            />
-          </div>
-        )}
-
-        {/* 공유 / 저장 버튼 */}
+        {/* 소유권 이전하기 버튼 */}
         <button
-          onClick={handleCopyLink}
-          className="w-full py-3.5 rounded-lg text-sm font-medium border border-[var(--color-border)] text-[var(--color-fg)] bg-transparent cursor-pointer"
-        >
-          공유 링크 복사
-        </button>
-
-        <button
-          onClick={handleSaveImage}
-          disabled={isSaving}
+          onClick={handleOpenTransfer}
+          disabled={isGenerating}
           className={[
-            'w-full py-3.5 rounded-lg text-sm font-medium transition-colors',
-            isSaving
-              ? 'bg-[var(--color-border)] text-[var(--color-muted)] cursor-not-allowed'
+            'w-full h-11 rounded-full text-sm border-none transition-colors',
+            isGenerating
+              ? 'bg-[var(--color-icon-inactive)] text-[var(--color-bg)] cursor-not-allowed'
               : 'bg-[var(--color-accent)] text-[var(--color-bg)] cursor-pointer',
           ].join(' ')}
         >
-          {isSaving ? '저장 중...' : '이미지로 저장'}
+          {isGenerating ? '코드 발급 중...' : '소유권 이전하기'}
         </button>
       </div>
 
       <BottomTabBar tagCode={tagCode!} />
+
+      {/* 양도 코드 모달 */}
+      {transferCode && (
+        <>
+          {/* 배경 오버레이 */}
+          <div
+            className="fixed inset-0 z-40"
+            style={{ backgroundColor: 'rgba(0,0,0,0.24)' }}
+            onClick={() => !isCanceling && setTransferCode(null)}
+            aria-hidden="true"
+          />
+          {/* 바텀시트 카드 */}
+          <div
+            className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-50 px-2"
+            style={{ paddingBottom: 'max(34px, env(safe-area-inset-bottom))' }}
+          >
+            <div className="w-full bg-[var(--color-bg)] rounded-lg shadow-card flex flex-col gap-3 px-2 pt-2 pb-4">
+              {/* 그래버 */}
+              <div className="flex justify-center pt-1">
+                <div className="w-10 h-1 rounded-full bg-[var(--color-icon-inactive)]" />
+              </div>
+
+              {/* 양도 코드 섹션 */}
+              <div className="flex flex-col gap-9 px-2">
+                <div className="flex flex-col gap-2">
+                  <p className="m-0 text-base text-[var(--color-fg)]">양도 코드</p>
+                  <div className="flex flex-col gap-1">
+                    <p className="m-0 text-2xl text-[var(--color-fg)] leading-tight">
+                      {formatCode(transferCode)}
+                    </p>
+                    {expiresAt && (
+                      <p className="m-0 text-xs text-[var(--color-muted)] leading-[1.4em] tracking-[0.04em]">
+                        {formatExpiresAt(expiresAt)}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* 버튼 섹션 */}
+                <div className="flex flex-col gap-2">
+                  <button
+                    onClick={handleCopyCode}
+                    className="w-full h-11 rounded-full text-sm bg-[var(--color-accent)] text-[var(--color-bg)] border-none cursor-pointer"
+                  >
+                    코드 복사
+                  </button>
+                  <button
+                    onClick={handleCancelTransfer}
+                    disabled={isCanceling}
+                    className={[
+                      'w-full h-11 rounded-full text-sm border-none transition-colors',
+                      isCanceling
+                        ? 'bg-[#BFBFBF] text-[var(--color-bg)] cursor-not-allowed'
+                        : 'bg-[#BFBFBF] text-[var(--color-bg)] cursor-pointer',
+                    ].join(' ')}
+                  >
+                    {isCanceling ? '취소 중...' : '발급 취소'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

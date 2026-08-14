@@ -2,29 +2,68 @@
 
 :root {
   --color-bg: #ffffff;
-  --color-fg: #0f172a;
-  --color-muted: #94a3b8;
-  --color-accent: #000000;
+  --color-fg: #2D2D2D;
+  --color-muted: #8B8B8B;
+  --color-accent: #2D2D2D;
   --color-danger: #ef4444;
-  --color-border: #e2e8f0;
+  --color-border: #EAEAEA;
+  --color-tint: #F0F0F0;
+  --color-icon-inactive: #CECECE;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-bg: #0f172a;
-    --color-fg: #f1f5f9;
-    --color-muted: #64748b;
-    --color-accent: #ffffff;
+    --color-bg: #111111;
+    --color-fg: #F0F0F0;
+    --color-muted: #8B8B8B;
+    --color-accent: #F0F0F0;
     --color-danger: #f87171;
-    --color-border: #1e293b;
+    --color-border: #2D2D2D;
+    --color-tint: #1D1D1D;
+    --color-icon-inactive: #5D5D5D;
   }
 }
 
 body {
   background-color: var(--color-bg);
   color: var(--color-fg);
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.shadow-tapbar {
+  box-shadow: 0px 8px 30px 0px rgba(42, 41, 38, 0.1), 0px 2px 5px 0px rgba(42, 41, 38, 0.08);
+}
+
+.shadow-card {
+  box-shadow: 0px 4px 16px 0px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-ownership {
+  box-shadow:
+    0px 8px 30px 0px rgba(42, 41, 38, 0.10),
+    0px 2px 5px 0px rgba(42, 41, 38, 0.08),
+    inset 4px 4px 24px 0px rgba(255, 255, 255, 0.25),
+    inset 2px 2px 1px 0px rgba(255, 255, 255, 0.40),
+    inset -4px -4px 2px 0px rgba(255, 255, 255, 0.04);
+}
+
+@media (prefers-color-scheme: dark) {
+  .shadow-tapbar {
+    box-shadow: 0px 8px 30px 0px rgba(0, 0, 0, 0.35), 0px 2px 5px 0px rgba(0, 0, 0, 0.25);
+  }
+
+  .shadow-card {
+    box-shadow: 0px 4px 16px 0px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes shimmer {
@@ -36,7 +75,7 @@ body {
   background: linear-gradient(
     90deg,
     var(--color-border) 25%,
-    var(--color-muted)  50%,
+    var(--color-tint)   50%,
     var(--color-border) 75%
   );
   background-size: 200% 100%;

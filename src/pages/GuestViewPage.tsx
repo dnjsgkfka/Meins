@@ -1,16 +1,51 @@
 import { useNavigate } from 'react-router';
 import type { TagDetailResponse } from '../types/api';
+import PageHeader from '../components/PageHeader';
 import ProductHero from '../components/product/ProductHero';
-import ProductTitle from '../components/product/ProductTitle';
 import InfoList from '../components/product/InfoList';
-import DetailImages from '../components/product/DetailImages';
-import ProductLinkButton from '../components/product/ProductLinkButton';
-import StatusCard from '../components/product/StatusCard';
-import { formatSize } from '../lib/format';
+import type { InfoGroup } from '../components/product/InfoList';
+import { formatSize, formatDateTime } from '../lib/format';
 
 interface Props {
   tagCode: string;
   data: TagDetailResponse;
+}
+
+function infoGroups(
+  ownership: TagDetailResponse['ownership'],
+  official: TagDetailResponse['official'],
+  product: TagDetailResponse['product'],
+): InfoGroup[] {
+  const ownershipItems = ownership.registered
+    ? [
+        { label: '등록 상태', value: '등록된 제품' },
+        ...(ownership.registeredAt
+          ? [{ label: '등록 일자', value: formatDateTime(ownership.registeredAt) }]
+          : []),
+      ]
+    : [{ value: '등록된 소유자 없음' }];
+
+  return [
+    { section: '소유 등록', items: ownershipItems },
+    {
+      section: '공식 출처',
+      items: [
+        { label: '제조연월', value: official.manufacturedAt },
+        { label: '판매 등록', value: official.releasedAt },
+        ...(product.productUrl
+          ? [{ label: '제품 링크', value: '제품 상세 페이지', href: product.productUrl }]
+          : []),
+      ],
+    },
+    {
+      section: '제품 정보',
+      items: [
+        { label: '소재', value: product.material },
+        { label: '사이즈', value: formatSize(product.size) },
+        { label: '색상', value: product.color },
+      ],
+    },
+  ];
 }
 
 export default function GuestViewPage({ tagCode, data }: Props) {
@@ -18,84 +53,76 @@ export default function GuestViewPage({ tagCode, data }: Props) {
   const { product, official, ownership } = data;
 
   return (
-    <div className="pb-24">
-      {/* TagCode */}
-      <div className="px-4 py-3 border-b border-[var(--color-border)]">
-        <p className="m-0 text-xs text-[var(--color-muted)] tracking-widest">{tagCode}</p>
+    <div
+      className="min-h-dvh"
+      style={{ backgroundColor: 'var(--color-tint)' }}
+    >
+      <PageHeader title="소유자 확인" />
+
+      {/* 스크롤 콘텐츠 */}
+      <div
+        className="flex flex-col gap-6 px-2"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top) + 56px)',
+          paddingBottom: ownership.registered
+            ? 'calc(max(16px, env(safe-area-inset-bottom)) + 101px)'
+            : 'calc(max(16px, env(safe-area-inset-bottom)) + 76px)',
+        }}
+      >
+        {/* 제품명 + 이미지 묶음 */}
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-0.5" style={{ width: 231 }}>
+            <h1 className="m-0 text-2xl font-normal text-[var(--color-fg)] leading-tight">
+              {product.name}
+            </h1>
+            <p className="m-0 text-xs text-[var(--color-muted)] tracking-[0.04em]">
+              # {product.modelCode}
+            </p>
+          </div>
+          <ProductHero src={product.heroImage} alt={product.name} />
+        </div>
+
+        {/* 정보 목록 */}
+        <div>
+          <InfoList
+            groups={infoGroups(ownership, official, product)}
+          />
+          <p className="m-0 mt-3 text-xs text-[var(--color-muted)] tracking-[0.04em]">
+            브랜드에서 제공하는 공식 데이터입니다.
+          </p>
+        </div>
       </div>
 
-      {/* ProductHero */}
-      <ProductHero src={product.heroImage} alt={product.name} />
-
-      {/* 공식 태그 뱃지 */}
-      <div className="px-4 pt-3">
-        <span className="inline-block px-2.5 py-1 text-[0.7rem] font-semibold tracking-wide border border-[var(--color-fg)] rounded-full text-[var(--color-fg)]">
-          OFFICIAL TAG
-        </span>
-      </div>
-
-      {/* ProductTitle + 모델 코드 */}
-      <div className="px-4 pt-2 pb-3">
-        <ProductTitle name={product.name} />
-        <p className="m-0 mt-1 text-xs text-[var(--color-muted)]">{product.modelCode}</p>
-      </div>
-
-      {/* StatusCard */}
-      <div className="px-4 pb-4">
-        <StatusCard registered={ownership.registered} registeredAt={ownership.registeredAt} />
-      </div>
-
-      {/* InfoList — 공식 출처 */}
-      <div className="px-4 pb-4">
-        <InfoList
-          items={[
-            { label: '제조연월', value: official.manufacturedAt },
-            { label: '판매 등록', value: official.releasedAt },
-          ]}
-        />
-      </div>
-
-      {/* ProductLinkButton */}
-      <div className="px-4 pb-6">
-        <ProductLinkButton url={product.productUrl} />
-      </div>
-
-      {/* InfoList — 제품 정보 */}
-      <div className="px-4 pb-4">
-        <InfoList
-          items={[
-            { label: '소재', value: product.material },
-            { label: '사이즈', value: formatSize(product.size) },
-            { label: '색상', value: product.color },
-          ]}
-        />
-      </div>
-
-      {/* DetailImages */}
-      <div className="px-4 pb-6">
-        <DetailImages images={product.detailImages} />
-      </div>
-
-      {/* 하단 안내문구 */}
-      <div className="px-4 pb-6">
-        <p className="m-0 text-xs text-[var(--color-muted)] leading-relaxed">
-          본 태그는 MCM 공식 제품에만 부착됩니다. 태그 정보에 의문이 있으시면 고객센터로 문의해 주세요.
-        </p>
-      </div>
-
-      {/* 하단 CTA — 고정 */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] bg-[var(--color-bg)] border-t border-[var(--color-border)] box-border">
+      {/* 하단 CTA */}
+      <div
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20 flex flex-col items-stretch gap-2 px-2"
+        style={{
+          background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--color-tint) 40%)',
+          backdropFilter: 'blur(1.5px)',
+          WebkitBackdropFilter: 'blur(1.5px)',
+          paddingTop: 16,
+          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
+        }}
+      >
         {ownership.registered ? (
-          <button
-            disabled
-            className="w-full py-3.5 rounded-lg text-sm font-medium bg-[var(--color-border)] text-[var(--color-muted)] cursor-not-allowed"
-          >
-            이미 등록된 제품입니다
-          </button>
+          <>
+            <button
+              onClick={() => navigate(`/t/${tagCode}/verify`)}
+              className="text-left text-xs text-[var(--color-fg)] underline bg-transparent border-none cursor-pointer tracking-[0.04em]"
+            >
+              이 제품을 양도받으셨나요?
+            </button>
+            <button
+              disabled
+              className="w-full h-11 rounded-full text-sm bg-[var(--color-icon-inactive)] text-[var(--color-bg)] border-none cursor-not-allowed"
+            >
+              이미 등록된 제품입니다
+            </button>
+          </>
         ) : (
           <button
             onClick={() => navigate(`/t/${tagCode}/verify`)}
-            className="w-full py-3.5 rounded-lg text-sm font-medium bg-[var(--color-accent)] text-[var(--color-bg)] cursor-pointer"
+            className="w-full h-11 rounded-full text-sm bg-[var(--color-accent)] text-[var(--color-bg)] border-none cursor-pointer"
           >
             소유자 등록하기
           </button>
