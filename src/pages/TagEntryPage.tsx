@@ -15,6 +15,7 @@ type PageState =
   | { type: 'loading' }
   | { type: 'guest'; data: TagDetailResponse }
   | { type: 'not_found' }
+  | { type: 'server_error' }
   | { type: 'network_error' };
 
 export default function TagEntryPage() {
@@ -65,6 +66,8 @@ export default function TagEntryPage() {
           (err.code === 'TAG_NOT_FOUND' || err.code === 'TAG_INVALID_FORMAT')
         ) {
           setState({ type: 'not_found' });
+        } else if (err instanceof ApiError && err.code === 'INTERNAL_ERROR') {
+          setState({ type: 'server_error' });
         } else {
           setState({ type: 'network_error' });
         }
@@ -84,6 +87,16 @@ export default function TagEntryPage() {
       return (
         <TagNotFoundScreen
           onRetry={() => navigate('/')}
+        />
+      );
+    case 'server_error':
+      return (
+        <NetworkErrorScreen
+          message="서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요."
+          onRetry={() => {
+            setState({ type: 'loading' });
+            setRetryKey((k) => k + 1);
+          }}
         />
       );
     case 'network_error':

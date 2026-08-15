@@ -1,8 +1,10 @@
 interface Props {
   onRetry?: () => void;
+  message?: string;
 }
 
-export default function NetworkErrorScreen({ onRetry }: Props) {
+export default function NetworkErrorScreen({ onRetry, message }: Props) {
+  const isServerError = !!message;
   return (
     <div
       className="min-h-dvh flex flex-col"
@@ -11,10 +13,10 @@ export default function NetworkErrorScreen({ onRetry }: Props) {
       {/* 본문 */}
       <div className="flex flex-col gap-2 px-2" style={{ marginTop: 56 }}>
         <h1 className="m-0 text-2xl font-normal text-[var(--color-fg)]">
-          연결을 확인할 수 없습니다
+          {isServerError ? '서버 오류' : '연결을 확인할 수 없습니다'}
         </h1>
         <p className="m-0 text-xs text-[var(--color-muted)] leading-relaxed tracking-[0.04em]">
-          인터넷 연결 상태를 확인한 후 다시 시도해 주세요.
+          {message ?? '인터넷 연결 상태를 확인한 후 다시 시도해 주세요.'}
         </p>
       </div>
 
