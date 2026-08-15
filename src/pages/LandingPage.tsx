@@ -13,7 +13,7 @@ const FALLBACK_ENTRIES: DemoEntry[] = [
 
 function toDisplayEntry(entry: DemoEntry) {
   return {
-    label: entry.status === 'REGISTERED' ? '등록된 제품' : '미등록 제품',
+    label: entry.productName || (entry.status === 'REGISTERED' ? '등록된 제품' : '미등록 제품'),
     tag: `TAG ${entry.tagCode}`,
     sub: entry.status === 'UNREGISTERED' && entry.authCode
       ? `인증 코드 ${entry.authCode}`
@@ -27,6 +27,8 @@ export default function LandingPage() {
   const saved = getDemoConfig();
   const raw = saved && saved.length > 0 ? saved : FALLBACK_ENTRIES;
   const entries = raw.map(toDisplayEntry);
+
+  const INVALID_ENTRY = toDisplayEntry({ tagCode: '0000-0000', authCode: '', status: 'UNREGISTERED', productName: '유효하지 않은 태그' });
 
   return (
     <div className="min-h-dvh" style={{ backgroundColor: 'var(--color-tint)' }}>
@@ -47,6 +49,7 @@ export default function LandingPage() {
             {entries.map((e) => (
               <DemoBox key={e.tagCode} entry={e} onClick={() => navigate(`/t/${e.tagCode}`)} />
             ))}
+            <DemoBox entry={INVALID_ENTRY} onClick={() => navigate(`/t/${INVALID_ENTRY.tagCode}`)} />
           </div>
         </div>
 
