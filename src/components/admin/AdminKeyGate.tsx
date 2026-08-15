@@ -23,7 +23,7 @@ export default function AdminKeyGate({ children }: Props) {
         clearAdminKey();
         setStatus('unauthed');
       });
-  }, []);
+  }, [status]);
 
   if (status === 'validating') {
     return (
