@@ -4,6 +4,7 @@ import { clearAdminKey } from '../lib/adminKey';
 import BulkCreateForm from '../components/admin/BulkCreateForm';
 import TagListTable from '../components/admin/TagListTable';
 import ForceStatusModal from '../components/admin/ForceStatusModal';
+import QrExportTab from '../components/admin/QrExportTab';
 import type { AdminTag } from '../api/admin';
 
 type Tab = 'create' | 'list' | 'qr';
@@ -74,7 +75,7 @@ function AdminPageContent() {
       <div className="flex-1 overflow-y-auto px-4 py-6">
         {activeTab === 'create' && <BulkCreateForm onCreated={() => setListRefreshTrigger((n) => n + 1)} />}
         {activeTab === 'list'   && <TagListTable onNeedForceStatus={setActionTag} refreshTrigger={listRefreshTrigger} />}
-        {activeTab === 'qr'     && <div className="text-sm text-[var(--color-muted)]">— QR 다운로드 (Stage 6) —</div>}
+        {activeTab === 'qr'     && <QrExportTab />}
       </div>
     </div>
   );
