@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router';
+import { useEffect, useRef } from 'react';
+import QRCode from 'qrcode';
 import PageHeader from '../components/PageHeader';
 
 interface DemoEntry {
@@ -43,7 +45,6 @@ export default function LandingPage() {
           paddingBottom: 'max(34px, env(safe-area-inset-bottom))',
         }}
       >
-        {/* 섹션 1: 태그 없이 상태 확인 */}
         <div className="flex flex-col gap-6">
           <h2
             className="m-0 font-normal leading-[1.3em]"
@@ -62,7 +63,6 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* 섹션 2: QR 스캔 진입 */}
         <div className="flex flex-col gap-6">
           <h2
             className="m-0 font-normal leading-[1.3em]"
@@ -70,19 +70,46 @@ export default function LandingPage() {
           >
             QR 스캔으로 진입
           </h2>
-          <div className="flex flex-col gap-2">
-            <div
-              className="rounded-lg"
-              style={{ width: 120, height: 120, backgroundColor: '#BFBFBF' }}
-            />
-            <p
-              className="m-0 text-xs leading-[1.4em] tracking-[0.04em] whitespace-pre-line"
-              style={{ color: '#8B8B8B' }}
-            >
-              {'심사용 데모 진입점입니다.\n실제 서비스에는 노출되지 않습니다.'}
-            </p>
+          <div className="flex flex-col gap-3">
+            {DEMO_ENTRIES.map((entry) => (
+              <QrRow key={entry.tagCode} entry={entry} />
+            ))}
           </div>
+          <p
+            className="m-0 text-xs leading-[1.4em] tracking-[0.04em] whitespace-pre-line"
+            style={{ color: '#8B8B8B' }}
+          >
+            {'심사용 데모 진입점입니다.\n실제 서비스에는 노출되지 않습니다.'}
+          </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function QrRow({ entry }: { entry: DemoEntry }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    const url = `${window.location.origin}/t/${entry.tagCode}`;
+    QRCode.toCanvas(canvasRef.current, url, {
+      width: 100,
+      margin: 1,
+      color: { dark: '#111111', light: '#F5F5F5' },
+    });
+  }, [entry.tagCode]);
+
+  return (
+    <div
+      className="flex items-center gap-4 rounded-lg bg-[var(--color-bg)] px-4 py-3"
+      style={{ boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)' }}
+    >
+      <canvas ref={canvasRef} width={100} height={100} className="shrink-0 rounded" />
+      <div className="flex flex-col gap-1">
+        <span className="text-xs" style={{ color: '#8B8B8B' }}>{entry.label}</span>
+        <span className="leading-[1.3em]" style={{ fontSize: 15, color: '#111111' }}>{entry.tag}</span>
+        <span className="text-xs" style={{ color: '#8B8B8B' }}>{entry.sub}</span>
       </div>
     </div>
   );
@@ -118,7 +145,6 @@ function DemoBox({ entry, onClick }: { entry: DemoEntry; onClick: () => void }) 
         </div>
       </div>
 
-      {/* arrow button */}
       <div
         className="flex items-center justify-center shrink-0"
         style={{

@@ -1,6 +1,5 @@
 import { createBrowserRouter } from 'react-router';
 import Layout from './components/Layout';
-import ScanPage from './pages/ScanPage';
 import LandingPage from './pages/LandingPage';
 import TagEntryPage from './pages/TagEntryPage';
 import VerifyPage from './pages/VerifyPage';
@@ -16,10 +15,6 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <ScanPage />,
-      },
-      {
-        path: '/dev',
         element: <LandingPage />,
       },
       {
