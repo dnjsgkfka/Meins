@@ -8,7 +8,7 @@ const FIELD_CLASS =
   'w-full h-11 px-3 rounded-lg border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-sm text-[var(--color-fg)] outline-none focus:border-[var(--color-accent)]';
 const LABEL_CLASS = 'flex flex-col gap-1 text-xs text-[var(--color-muted)]';
 
-export default function BulkCreateForm() {
+export default function BulkCreateForm({ onCreated }: { onCreated?: () => void }) {
   const resetKey = useAdminKeyReset();
   const { showToast } = useToast();
 
@@ -59,6 +59,7 @@ export default function BulkCreateForm() {
     try {
       const res = await bulkCreateTags(body);
       setResult(res);
+      onCreated?.();
     } catch (err) {
       if (err instanceof AdminApiError && err.code === 'ADMIN_KEY_INVALID') {
         showToast('관리자 키가 유효하지 않습니다. 다시 입력해주세요.');
