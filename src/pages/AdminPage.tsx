@@ -3,6 +3,7 @@ import AdminKeyGate, { useAdminKeyReset } from '../components/admin/AdminKeyGate
 import { clearAdminKey } from '../lib/adminKey';
 import BulkCreateForm from '../components/admin/BulkCreateForm';
 import TagListTable from '../components/admin/TagListTable';
+import ForceStatusModal from '../components/admin/ForceStatusModal';
 import type { AdminTag } from '../api/admin';
 
 type Tab = 'create' | 'list' | 'qr';
@@ -24,11 +25,8 @@ export default function AdminPage() {
 function AdminPageContent() {
   const [activeTab, setActiveTab] = useState<Tab>('create');
   const [listRefreshTrigger, setListRefreshTrigger] = useState(0);
+  const [actionTag, setActionTag] = useState<AdminTag | null>(null);
   const resetKey = useAdminKeyReset();
-
-  function handleForceStatus(_tag: AdminTag) {
-    // Stage 5에서 구현
-  }
 
   function handleLogout() {
     clearAdminKey();
@@ -66,10 +64,16 @@ function AdminPageContent() {
         ))}
       </div>
 
+      <ForceStatusModal
+        tag={actionTag}
+        onClose={() => setActionTag(null)}
+        onDone={() => setListRefreshTrigger((n) => n + 1)}
+      />
+
       {/* 탭 콘텐츠 */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
         {activeTab === 'create' && <BulkCreateForm onCreated={() => setListRefreshTrigger((n) => n + 1)} />}
-        {activeTab === 'list'   && <TagListTable onNeedForceStatus={handleForceStatus} refreshTrigger={listRefreshTrigger} />}
+        {activeTab === 'list'   && <TagListTable onNeedForceStatus={setActionTag} refreshTrigger={listRefreshTrigger} />}
         {activeTab === 'qr'     && <div className="text-sm text-[var(--color-muted)]">— QR 다운로드 (Stage 6) —</div>}
       </div>
     </div>
