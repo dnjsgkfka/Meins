@@ -1,38 +1,34 @@
 import { useNavigate } from 'react-router';
 import { useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
+import { getDemoConfig } from '../lib/demoConfig';
+import type { DemoEntry } from '../lib/demoConfig';
 import PageHeader from '../components/PageHeader';
 
-interface DemoEntry {
-  label: string;
-  tag: string;
-  sub: string;
-  tagCode: string;
-}
-
-const DEMO_ENTRIES: DemoEntry[] = [
-  {
-    label: '미등록 제품',
-    tag: 'TAG A1B2-C3D4',
-    sub: '인증 코드 F26T-59QR-9D3K',
-    tagCode: 'A1B2-C3D4',
-  },
-  {
-    label: '등록된 제품',
-    tag: 'TAG B2C3-D4E5',
-    sub: '조회 전용 · 코드 없음',
-    tagCode: 'B2C3-D4E5',
-  },
-  {
-    label: '유효하지 않은 태그',
-    tag: 'TAG 0000-0000',
-    sub: '조회 실패 화면 확인',
-    tagCode: '0000-0000',
-  },
+const FALLBACK_ENTRIES: DemoEntry[] = [
+  { tagCode: 'A1B2-C3D4', authCode: 'F26T-59QR-9D3K', status: 'UNREGISTERED', productName: '미등록 제품' },
+  { tagCode: 'B2C3-D4E5', authCode: '', status: 'REGISTERED',   productName: '등록된 제품' },
+  { tagCode: '0000-0000', authCode: '', status: 'UNREGISTERED', productName: '유효하지 않은 태그' },
 ];
+
+function toDisplayEntry(entry: DemoEntry) {
+  return {
+    label: entry.productName || (entry.status === 'REGISTERED' ? '등록된 제품' : '미등록 제품'),
+    tag: `TAG ${entry.tagCode}`,
+    sub: entry.status === 'UNREGISTERED' && entry.authCode
+      ? `인증 코드 ${entry.authCode}`
+      : '조회 전용 · 코드 없음',
+    tagCode: entry.tagCode,
+  };
+}
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const saved = getDemoConfig();
+  const raw = saved && saved.length > 0 ? saved : FALLBACK_ENTRIES;
+  const entries = raw.map(toDisplayEntry);
+
+  const INVALID_ENTRY = toDisplayEntry({ tagCode: '0000-0000', authCode: '', status: 'UNREGISTERED', productName: '유효하지 않은 태그' });
 
   return (
     <div className="min-h-dvh" style={{ backgroundColor: 'var(--color-tint)' }}>
@@ -46,39 +42,25 @@ export default function LandingPage() {
         }}
       >
         <div className="flex flex-col gap-6">
-          <h2
-            className="m-0 font-normal leading-[1.3em]"
-            style={{ fontSize: 24, color: '#111111' }}
-          >
+          <h2 className="m-0 font-normal leading-[1.3em]" style={{ fontSize: 24, color: '#111111' }}>
             실물 태그 없이{'\n'}각 상태를 확인할 수 있습니다
           </h2>
           <div className="flex flex-col gap-2">
-            {DEMO_ENTRIES.map((entry) => (
-              <DemoBox
-                key={entry.tagCode}
-                entry={entry}
-                onClick={() => navigate(`/t/${entry.tagCode}`)}
-              />
+            {entries.map((e) => (
+              <DemoBox key={e.tagCode} entry={e} onClick={() => navigate(`/t/${e.tagCode}`)} />
             ))}
+            <DemoBox entry={INVALID_ENTRY} onClick={() => navigate(`/t/${INVALID_ENTRY.tagCode}`)} />
           </div>
         </div>
 
         <div className="flex flex-col gap-6">
-          <h2
-            className="m-0 font-normal leading-[1.3em]"
-            style={{ fontSize: 24, color: '#111111' }}
-          >
+          <h2 className="m-0 font-normal leading-[1.3em]" style={{ fontSize: 24, color: '#111111' }}>
             QR 스캔으로 진입
           </h2>
           <div className="flex flex-col gap-3">
-            {DEMO_ENTRIES.map((entry) => (
-              <QrRow key={entry.tagCode} entry={entry} />
-            ))}
+            {entries.map((e) => <QrRow key={e.tagCode} entry={e} />)}
           </div>
-          <p
-            className="m-0 text-xs leading-[1.4em] tracking-[0.04em] whitespace-pre-line"
-            style={{ color: '#8B8B8B' }}
-          >
+          <p className="m-0 text-xs leading-[1.4em] tracking-[0.04em] whitespace-pre-line" style={{ color: '#8B8B8B' }}>
             {'심사용 데모 진입점입니다.\n실제 서비스에는 노출되지 않습니다.'}
           </p>
         </div>
@@ -87,13 +69,12 @@ export default function LandingPage() {
   );
 }
 
-function QrRow({ entry }: { entry: DemoEntry }) {
+function QrRow({ entry }: { entry: ReturnType<typeof toDisplayEntry> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    const url = `${window.location.origin}/t/${entry.tagCode}`;
-    QRCode.toCanvas(canvasRef.current, url, {
+    QRCode.toCanvas(canvasRef.current, `${window.location.origin}/t/${entry.tagCode}`, {
       width: 100,
       margin: 1,
       color: { dark: '#111111', light: '#F5F5F5' },
@@ -101,10 +82,7 @@ function QrRow({ entry }: { entry: DemoEntry }) {
   }, [entry.tagCode]);
 
   return (
-    <div
-      className="flex items-center gap-4 rounded-lg bg-[var(--color-bg)] px-4 py-3"
-      style={{ boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)' }}
-    >
+    <div className="flex items-center gap-4 rounded-lg bg-[var(--color-bg)] px-4 py-3" style={{ boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)' }}>
       <canvas ref={canvasRef} width={100} height={100} className="shrink-0 rounded" />
       <div className="flex flex-col gap-1">
         <span className="text-xs" style={{ color: '#8B8B8B' }}>{entry.label}</span>
@@ -115,54 +93,23 @@ function QrRow({ entry }: { entry: DemoEntry }) {
   );
 }
 
-function DemoBox({ entry, onClick }: { entry: DemoEntry; onClick: () => void }) {
+function DemoBox({ entry, onClick }: { entry: ReturnType<typeof toDisplayEntry>; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
       className="w-full flex items-center justify-between rounded-lg bg-[var(--color-bg)] border-none cursor-pointer text-left"
-      style={{
-        padding: 8,
-        boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)',
-      }}
+      style={{ padding: 8, boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)' }}
     >
       <div className="flex flex-col gap-2" style={{ width: 153 }}>
-        <span
-          className="text-xs leading-[1.4em] tracking-[0.04em]"
-          style={{ color: '#8B8B8B' }}
-        >
-          {entry.label}
-        </span>
+        <span className="text-xs leading-[1.4em] tracking-[0.04em]" style={{ color: '#8B8B8B' }}>{entry.label}</span>
         <div className="flex flex-col" style={{ gap: 2 }}>
-          <span className="leading-[1.3em]" style={{ fontSize: 16, color: '#111111' }}>
-            {entry.tag}
-          </span>
-          <span
-            className="text-xs leading-[1.4em] tracking-[0.04em]"
-            style={{ color: '#8B8B8B' }}
-          >
-            {entry.sub}
-          </span>
+          <span className="leading-[1.3em]" style={{ fontSize: 16, color: '#111111' }}>{entry.tag}</span>
+          <span className="text-xs leading-[1.4em] tracking-[0.04em]" style={{ color: '#8B8B8B' }}>{entry.sub}</span>
         </div>
       </div>
-
-      <div
-        className="flex items-center justify-center shrink-0"
-        style={{
-          width: 44,
-          height: 44,
-          borderRadius: 100,
-          backgroundColor: '#2D2D2D',
-          boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)',
-        }}
-      >
+      <div className="flex items-center justify-center shrink-0" style={{ width: 44, height: 44, borderRadius: 100, backgroundColor: '#2D2D2D' }}>
         <svg width="7" height="12" viewBox="0 0 7 12" fill="none" aria-hidden="true">
-          <path
-            d="M1 11L6 6L1 1"
-            stroke="white"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+          <path d="M1 11L6 6L1 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
     </button>
