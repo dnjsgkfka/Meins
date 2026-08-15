@@ -56,7 +56,8 @@ async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T
     throw new AdminApiError(code, message, response.status);
   }
 
-  return response.json() as Promise<T>;
+  const text = await response.text();
+  return (text ? JSON.parse(text) : undefined) as T;
 }
 
 async function adminFetchBlob(path: string): Promise<Blob> {

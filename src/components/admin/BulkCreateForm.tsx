@@ -94,77 +94,77 @@ export default function BulkCreateForm({ onCreated }: { onCreated?: () => void }
           {/* 제품명 — 전체 너비 */}
           <label className={`${LABEL_CLASS} sm:col-span-2`}>
             제품명 <span className="text-[var(--color-danger)]">*</span>
-            <input className={FIELD_CLASS} value={form.productName} onChange={set('productName')} placeholder="MCM 클래식 백팩" />
+            <input name="productName" className={FIELD_CLASS} value={form.productName} onChange={set('productName')} placeholder="MCM 클래식 백팩" />
           </label>
 
           <label className={LABEL_CLASS}>
             모델 코드
-            <input className={FIELD_CLASS} value={form.modelCode} onChange={set('modelCode')} placeholder="MUK AAVI03" />
+            <input name="modelCode" className={FIELD_CLASS} value={form.modelCode} onChange={set('modelCode')} placeholder="MUK AAVI03" />
           </label>
 
           <label className={LABEL_CLASS}>
             수량 (1~1000)
-            <input className={FIELD_CLASS} type="number" min={1} max={1000} value={form.quantity} onChange={set('quantity')} placeholder="1" />
+            <input name="quantity" className={FIELD_CLASS} type="number" min={1} max={1000} value={form.quantity} onChange={set('quantity')} placeholder="1" />
           </label>
 
           <label className={LABEL_CLASS}>
             제조연월 (YYYY-MM)
-            <input className={FIELD_CLASS} value={form.manufacturedYm} onChange={set('manufacturedYm')} placeholder="2024-03" />
+            <input name="manufacturedYm" className={FIELD_CLASS} value={form.manufacturedYm} onChange={set('manufacturedYm')} placeholder="2024-03" />
           </label>
 
           <label className={LABEL_CLASS}>
             판매 등록연월 (YYYY-MM)
-            <input className={FIELD_CLASS} value={form.saleRegisteredYm} onChange={set('saleRegisteredYm')} placeholder="2024-05" />
+            <input name="saleRegisteredYm" className={FIELD_CLASS} value={form.saleRegisteredYm} onChange={set('saleRegisteredYm')} placeholder="2024-05" />
           </label>
 
           <label className={LABEL_CLASS}>
             소재
-            <input className={FIELD_CLASS} value={form.material} onChange={set('material')} placeholder="모노그램 코팅 캔버스" />
+            <input name="material" className={FIELD_CLASS} value={form.material} onChange={set('material')} placeholder="모노그램 코팅 캔버스" />
           </label>
 
           <label className={LABEL_CLASS}>
             색상
-            <input className={FIELD_CLASS} value={form.color} onChange={set('color')} placeholder="코냑" />
+            <input name="color" className={FIELD_CLASS} value={form.color} onChange={set('color')} placeholder="코냑" />
           </label>
 
           <label className={LABEL_CLASS}>
             가로 (cm)
-            <input className={FIELD_CLASS} type="number" step="0.1" value={form.widthCm} onChange={set('widthCm')} placeholder="30" />
+            <input name="widthCm" className={FIELD_CLASS} type="number" step="0.1" value={form.widthCm} onChange={set('widthCm')} placeholder="30" />
           </label>
 
           <label className={LABEL_CLASS}>
             세로 (cm)
-            <input className={FIELD_CLASS} type="number" step="0.1" value={form.depthCm} onChange={set('depthCm')} placeholder="14" />
+            <input name="depthCm" className={FIELD_CLASS} type="number" step="0.1" value={form.depthCm} onChange={set('depthCm')} placeholder="14" />
           </label>
 
           <label className={LABEL_CLASS}>
             높이 (cm)
-            <input className={FIELD_CLASS} type="number" step="0.1" value={form.heightCm} onChange={set('heightCm')} placeholder="42" />
+            <input name="heightCm" className={FIELD_CLASS} type="number" step="0.1" value={form.heightCm} onChange={set('heightCm')} placeholder="42" />
           </label>
 
           <label className={`${LABEL_CLASS} sm:col-span-2`}>
             제품 대표 이미지 URL
-            <input className={FIELD_CLASS} value={form.imageUrl} onChange={set('imageUrl')} placeholder="https://..." />
+            <input name="imageUrl" className={FIELD_CLASS} value={form.imageUrl} onChange={set('imageUrl')} placeholder="https://..." />
           </label>
 
           <label className={LABEL_CLASS}>
             썸네일 1 URL
-            <input className={FIELD_CLASS} value={form.thumbnailImageUrl1} onChange={set('thumbnailImageUrl1')} placeholder="https://..." />
+            <input name="thumbnailImageUrl1" className={FIELD_CLASS} value={form.thumbnailImageUrl1} onChange={set('thumbnailImageUrl1')} placeholder="https://..." />
           </label>
 
           <label className={LABEL_CLASS}>
             썸네일 2 URL
-            <input className={FIELD_CLASS} value={form.thumbnailImageUrl2} onChange={set('thumbnailImageUrl2')} placeholder="https://..." />
+            <input name="thumbnailImageUrl2" className={FIELD_CLASS} value={form.thumbnailImageUrl2} onChange={set('thumbnailImageUrl2')} placeholder="https://..." />
           </label>
 
           <label className={`${LABEL_CLASS} sm:col-span-2`}>
             썸네일 3 URL
-            <input className={FIELD_CLASS} value={form.thumbnailImageUrl3} onChange={set('thumbnailImageUrl3')} placeholder="https://..." />
+            <input name="thumbnailImageUrl3" className={FIELD_CLASS} value={form.thumbnailImageUrl3} onChange={set('thumbnailImageUrl3')} placeholder="https://..." />
           </label>
 
           <label className={`${LABEL_CLASS} sm:col-span-2`}>
             제품 상세 페이지 URL
-            <input className={FIELD_CLASS} value={form.productPageUrl} onChange={set('productPageUrl')} placeholder="https://..." />
+            <input name="productPageUrl" className={FIELD_CLASS} value={form.productPageUrl} onChange={set('productPageUrl')} placeholder="https://..." />
           </label>
         </div>
 
