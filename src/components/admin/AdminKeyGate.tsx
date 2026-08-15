@@ -1,28 +1,47 @@
-import { useState } from 'react';
-import { getAdminKey, setAdminKey } from '../../lib/adminKey';
+import { useState, useEffect, createContext, useContext } from 'react';
+import { getAdminKey, setAdminKey, clearAdminKey } from '../../lib/adminKey';
+import { listAdminTags } from '../../api/admin';
 
 interface Props {
   children: React.ReactNode;
 }
 
+type Status = 'validating' | 'authed' | 'unauthed';
+
 export default function AdminKeyGate({ children }: Props) {
-  const [hasKey, setHasKey] = useState(() => !!getAdminKey());
+  const [status, setStatus] = useState<Status>(() =>
+    getAdminKey() ? 'validating' : 'unauthed'
+  );
   const [input, setInput] = useState('');
   const [error, setError] = useState('');
 
-  // 401로 clearAdminKey()가 호출되면 다시 폼으로 돌아오도록 외부에서 호출
-  if (!hasKey) {
+  useEffect(() => {
+    if (status !== 'validating') return;
+    listAdminTags()
+      .then(() => setStatus('authed'))
+      .catch(() => {
+        clearAdminKey();
+        setStatus('unauthed');
+      });
+  }, []);
+
+  if (status === 'validating') {
+    return (
+      <div className="min-h-dvh flex items-center justify-center" style={{ backgroundColor: 'var(--color-tint)' }}>
+        <span className="text-sm text-[var(--color-muted)]">확인 중...</span>
+      </div>
+    );
+  }
+
+  if (status === 'unauthed') {
     function handleSubmit(e: React.FormEvent) {
       e.preventDefault();
       const trimmed = input.trim();
-      if (!trimmed) {
-        setError('관리자 키를 입력해주세요.');
-        return;
-      }
+      if (!trimmed) { setError('관리자 키를 입력해주세요.'); return; }
       setAdminKey(trimmed);
       setError('');
       setInput('');
-      setHasKey(true);
+      setStatus('validating');
     }
 
     return (
@@ -38,10 +57,7 @@ export default function AdminKeyGate({ children }: Props) {
             className="w-full h-11 px-3 rounded-lg border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-sm text-[var(--color-fg)] outline-none focus:border-[var(--color-accent)]"
           />
           {error && <p className="m-0 text-xs text-[var(--color-danger)]">{error}</p>}
-          <button
-            type="submit"
-            className="h-11 rounded-full text-sm bg-[var(--color-accent)] text-[var(--color-bg)] border-none cursor-pointer"
-          >
+          <button type="submit" className="h-11 rounded-full text-sm bg-[var(--color-accent)] text-[var(--color-bg)] border-none cursor-pointer">
             확인
           </button>
         </form>
@@ -50,13 +66,11 @@ export default function AdminKeyGate({ children }: Props) {
   }
 
   return (
-    <AdminKeyContext.Provider value={{ resetKey: () => setHasKey(false) }}>
+    <AdminKeyContext.Provider value={{ resetKey: () => { clearAdminKey(); setStatus('unauthed'); } }}>
       {children}
     </AdminKeyContext.Provider>
   );
 }
-
-import { createContext, useContext } from 'react';
 
 interface AdminKeyContextValue {
   resetKey: () => void;
