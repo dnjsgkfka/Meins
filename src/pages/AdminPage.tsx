@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import AdminKeyGate, { useAdminKeyReset } from '../components/admin/AdminKeyGate';
 import { clearAdminKey } from '../lib/adminKey';
+import BulkCreateForm from '../components/admin/BulkCreateForm';
 
 type Tab = 'create' | 'list' | 'qr';
 
@@ -60,7 +61,7 @@ function AdminPageContent() {
 
       {/* 탭 콘텐츠 */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
-        {activeTab === 'create' && <div className="text-sm text-[var(--color-muted)]">— 제품/태그 생성 폼 (Stage 3) —</div>}
+        {activeTab === 'create' && <BulkCreateForm />}
         {activeTab === 'list'   && <div className="text-sm text-[var(--color-muted)]">— 태그 목록 (Stage 4) —</div>}
         {activeTab === 'qr'     && <div className="text-sm text-[var(--color-muted)]">— QR 다운로드 (Stage 6) —</div>}
       </div>
