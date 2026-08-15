@@ -6,6 +6,7 @@ import VerifyPage from './pages/VerifyPage';
 import OwnerHomePage from './pages/OwnerHomePage';
 import OwnershipPage from './pages/OwnershipPage';
 import ChatPage from './pages/ChatPage';
+import AdminPage from './pages/AdminPage';
 import RequireOwner from './components/RequireOwner';
 
 export const router = createBrowserRouter([
@@ -15,6 +16,10 @@ export const router = createBrowserRouter([
       {
         path: '/',
         element: <LandingPage />,
+      },
+      {
+        path: '/admin',
+        element: <AdminPage />,
       },
       {
         path: '/t/:tagCode',

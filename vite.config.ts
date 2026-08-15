@@ -9,4 +9,13 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
   ],
+  server: {
+    proxy: {
+      '/dev-proxy': {
+        target: 'https://meinsbackend-production.up.railway.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/dev-proxy/, ''),
+      },
+    },
+  },
 })
