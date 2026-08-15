@@ -1,61 +1,32 @@
 import { useNavigate } from 'react-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
-import { getAdminKey } from '../lib/adminKey';
-import { listAdminTags } from '../api/admin';
+import { getDemoConfig } from '../lib/demoConfig';
+import type { DemoEntry } from '../lib/demoConfig';
 import PageHeader from '../components/PageHeader';
 
-interface DemoEntry {
-  label: string;
-  tag: string;
-  sub: string;
-  tagCode: string;
-}
+const FALLBACK_ENTRIES: DemoEntry[] = [
+  { tagCode: 'A1B2-C3D4', authCode: 'F26T-59QR-9D3K', status: 'UNREGISTERED', productName: '미등록 제품' },
+  { tagCode: 'B2C3-D4E5', authCode: '', status: 'REGISTERED',   productName: '등록된 제품' },
+  { tagCode: '0000-0000', authCode: '', status: 'UNREGISTERED', productName: '유효하지 않은 태그' },
+];
 
-function useDemoTags() {
-  const [entries, setEntries] = useState<DemoEntry[] | null>(null);
-
-  useEffect(() => {
-    if (!getAdminKey()) return;
-    listAdminTags()
-      .then((tags) => {
-        const unregistered = tags.find((t) => t.status === 'UNREGISTERED' && !t.locked);
-        const registered = tags.find((t) => t.status === 'REGISTERED' && !t.locked);
-        const result: DemoEntry[] = [];
-        if (unregistered) result.push({
-          label: '미등록 제품',
-          tag: `TAG ${unregistered.tagCode}`,
-          sub: `인증 코드 ${unregistered.authCode}`,
-          tagCode: unregistered.tagCode,
-        });
-        if (registered) result.push({
-          label: '등록된 제품',
-          tag: `TAG ${registered.tagCode}`,
-          sub: '조회 전용 · 코드 없음',
-          tagCode: registered.tagCode,
-        });
-        setEntries(result);
-      })
-      .catch(() => setEntries([]));
-  }, []);
-
-  return entries;
+function toDisplayEntry(entry: DemoEntry) {
+  return {
+    label: entry.status === 'REGISTERED' ? '등록된 제품' : '미등록 제품',
+    tag: `TAG ${entry.tagCode}`,
+    sub: entry.status === 'UNREGISTERED' && entry.authCode
+      ? `인증 코드 ${entry.authCode}`
+      : '조회 전용 · 코드 없음',
+    tagCode: entry.tagCode,
+  };
 }
 
 export default function LandingPage() {
   const navigate = useNavigate();
-  const demoTags = useDemoTags();
-
-  const hasAdminKey = !!getAdminKey();
-  const isLoading = hasAdminKey && demoTags === null;
-
-  const displayEntries: DemoEntry[] = demoTags && demoTags.length > 0
-    ? demoTags
-    : [
-        { label: '미등록 제품', tag: 'TAG A1B2-C3D4', sub: '인증 코드 F26T-59QR-9D3K', tagCode: 'A1B2-C3D4' },
-        { label: '등록된 제품', tag: 'TAG B2C3-D4E5', sub: '조회 전용 · 코드 없음', tagCode: 'B2C3-D4E5' },
-        { label: '유효하지 않은 태그', tag: 'TAG 0000-0000', sub: '조회 실패 화면 확인', tagCode: '0000-0000' },
-      ];
+  const saved = getDemoConfig();
+  const raw = saved && saved.length > 0 ? saved : FALLBACK_ENTRIES;
+  const entries = raw.map(toDisplayEntry);
 
   return (
     <div className="min-h-dvh" style={{ backgroundColor: 'var(--color-tint)' }}>
@@ -72,39 +43,20 @@ export default function LandingPage() {
           <h2 className="m-0 font-normal leading-[1.3em]" style={{ fontSize: 24, color: '#111111' }}>
             실물 태그 없이{'\n'}각 상태를 확인할 수 있습니다
           </h2>
-
-          {isLoading ? (
-            <div className="flex flex-col gap-2">
-              {[0, 1].map((i) => (
-                <div key={i} className="h-16 rounded-lg shimmer" />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {displayEntries.map((entry) => (
-                <DemoBox key={entry.tagCode} entry={entry} onClick={() => navigate(`/t/${entry.tagCode}`)} />
-              ))}
-            </div>
-          )}
+          <div className="flex flex-col gap-2">
+            {entries.map((e) => (
+              <DemoBox key={e.tagCode} entry={e} onClick={() => navigate(`/t/${e.tagCode}`)} />
+            ))}
+          </div>
         </div>
 
         <div className="flex flex-col gap-6">
           <h2 className="m-0 font-normal leading-[1.3em]" style={{ fontSize: 24, color: '#111111' }}>
             QR 스캔으로 진입
           </h2>
-
-          {isLoading ? (
-            <div className="flex flex-col gap-3">
-              {[0, 1].map((i) => <div key={i} className="h-28 rounded-lg shimmer" />)}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {displayEntries.map((entry) => (
-                <QrRow key={entry.tagCode} entry={entry} />
-              ))}
-            </div>
-          )}
-
+          <div className="flex flex-col gap-3">
+            {entries.map((e) => <QrRow key={e.tagCode} entry={e} />)}
+          </div>
           <p className="m-0 text-xs leading-[1.4em] tracking-[0.04em] whitespace-pre-line" style={{ color: '#8B8B8B' }}>
             {'심사용 데모 진입점입니다.\n실제 서비스에는 노출되지 않습니다.'}
           </p>
@@ -114,13 +66,12 @@ export default function LandingPage() {
   );
 }
 
-function QrRow({ entry }: { entry: DemoEntry }) {
+function QrRow({ entry }: { entry: ReturnType<typeof toDisplayEntry> }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    const url = `${window.location.origin}/t/${entry.tagCode}`;
-    QRCode.toCanvas(canvasRef.current, url, {
+    QRCode.toCanvas(canvasRef.current, `${window.location.origin}/t/${entry.tagCode}`, {
       width: 100,
       margin: 1,
       color: { dark: '#111111', light: '#F5F5F5' },
@@ -139,7 +90,7 @@ function QrRow({ entry }: { entry: DemoEntry }) {
   );
 }
 
-function DemoBox({ entry, onClick }: { entry: DemoEntry; onClick: () => void }) {
+function DemoBox({ entry, onClick }: { entry: ReturnType<typeof toDisplayEntry>; onClick: () => void }) {
   return (
     <button
       onClick={onClick}
@@ -147,15 +98,13 @@ function DemoBox({ entry, onClick }: { entry: DemoEntry; onClick: () => void }) 
       style={{ padding: 8, boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)' }}
     >
       <div className="flex flex-col gap-2" style={{ width: 153 }}>
-        <span className="text-xs leading-[1.4em] tracking-[0.04em]" style={{ color: '#8B8B8B' }}>
-          {entry.label}
-        </span>
+        <span className="text-xs leading-[1.4em] tracking-[0.04em]" style={{ color: '#8B8B8B' }}>{entry.label}</span>
         <div className="flex flex-col" style={{ gap: 2 }}>
           <span className="leading-[1.3em]" style={{ fontSize: 16, color: '#111111' }}>{entry.tag}</span>
           <span className="text-xs leading-[1.4em] tracking-[0.04em]" style={{ color: '#8B8B8B' }}>{entry.sub}</span>
         </div>
       </div>
-      <div className="flex items-center justify-center shrink-0" style={{ width: 44, height: 44, borderRadius: 100, backgroundColor: '#2D2D2D', boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)' }}>
+      <div className="flex items-center justify-center shrink-0" style={{ width: 44, height: 44, borderRadius: 100, backgroundColor: '#2D2D2D' }}>
         <svg width="7" height="12" viewBox="0 0 7 12" fill="none" aria-hidden="true">
           <path d="M1 11L6 6L1 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>

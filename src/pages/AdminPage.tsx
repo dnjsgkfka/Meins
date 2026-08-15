@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import AdminKeyGate, { useAdminKeyReset } from '../components/admin/AdminKeyGate';
 import { clearAdminKey } from '../lib/adminKey';
+import { listAdminTags } from '../api/admin';
+import { setDemoConfig } from '../lib/demoConfig';
+import { useToast } from '../lib/toast';
 import BulkCreateForm from '../components/admin/BulkCreateForm';
 import TagListTable from '../components/admin/TagListTable';
 import ForceStatusModal from '../components/admin/ForceStatusModal';
@@ -27,11 +30,37 @@ function AdminPageContent() {
   const [activeTab, setActiveTab] = useState<Tab>('create');
   const [listRefreshTrigger, setListRefreshTrigger] = useState(0);
   const [actionTag, setActionTag] = useState<AdminTag | null>(null);
+  const [isSavingDemo, setIsSavingDemo] = useState(false);
   const resetKey = useAdminKeyReset();
+  const { showToast } = useToast();
 
   function handleLogout() {
     clearAdminKey();
     resetKey();
+  }
+
+  async function handleSaveDemo() {
+    setIsSavingDemo(true);
+    try {
+      const tags = await listAdminTags();
+      const unregistered = tags.find((t) => t.status === 'UNREGISTERED' && !t.locked);
+      const registered = tags.find((t) => t.status === 'REGISTERED' && !t.locked);
+      const entries = [
+        unregistered && { tagCode: unregistered.tagCode, authCode: unregistered.authCode, status: 'UNREGISTERED' as const, productName: unregistered.productName },
+        registered && { tagCode: registered.tagCode, authCode: registered.authCode, status: 'REGISTERED' as const, productName: registered.productName },
+      ].filter(Boolean) as Parameters<typeof setDemoConfig>[0];
+
+      if (entries.length === 0) {
+        showToast('설정할 태그가 없습니다.');
+        return;
+      }
+      setDemoConfig(entries);
+      showToast(`데모 설정 저장됨 (${entries.length}개 태그)`);
+    } catch {
+      showToast('저장에 실패했습니다.');
+    } finally {
+      setIsSavingDemo(false);
+    }
   }
 
   return (
@@ -39,12 +68,21 @@ function AdminPageContent() {
       {/* 헤더 */}
       <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-bg)] border-b border-[var(--color-border)]">
         <h1 className="m-0 text-base font-normal text-[var(--color-fg)]">MCM 관리자</h1>
-        <button
-          onClick={handleLogout}
-          className="text-xs text-[var(--color-muted)] bg-transparent border-none cursor-pointer px-0"
-        >
-          키 초기화
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSaveDemo}
+            disabled={isSavingDemo}
+            className="text-xs text-[var(--color-accent)] bg-transparent border-none cursor-pointer px-0 disabled:opacity-40"
+          >
+            {isSavingDemo ? '저장 중...' : '데모 설정'}
+          </button>
+          <button
+            onClick={handleLogout}
+            className="text-xs text-[var(--color-muted)] bg-transparent border-none cursor-pointer px-0"
+          >
+            키 초기화
+          </button>
+        </div>
       </div>
 
       {/* 탭 */}
