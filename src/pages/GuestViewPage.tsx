@@ -107,7 +107,7 @@ export default function GuestViewPage({ tagCode, data }: Props) {
         {ownership.registered ? (
           <>
             <button
-              onClick={() => navigate(`/t/${tagCode}/verify`)}
+              onClick={() => navigate(`/t/${tagCode}/transfer`)}
               className="text-left text-xs text-[var(--color-fg)] underline bg-transparent border-none cursor-pointer tracking-[0.04em]"
             >
               이 제품을 양도받으셨나요?
