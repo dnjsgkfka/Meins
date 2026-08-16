@@ -126,8 +126,8 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
                   <td className="px-3 py-2 border-b border-[var(--color-border)]">
                     <QrThumb tagCode={tag.tagCode} />
                   </td>
-                  <td className="px-3 py-2 font-mono border-b border-[var(--color-border)] whitespace-nowrap">{tag.tagCode}</td>
-                  <td className="px-3 py-2 font-mono border-b border-[var(--color-border)] whitespace-nowrap">{tag.authCode}</td>
+                  <td className="px-3 py-2 border-b border-[var(--color-border)] whitespace-nowrap">{tag.tagCode}</td>
+                  <td className="px-3 py-2 border-b border-[var(--color-border)] whitespace-nowrap">{tag.authCode}</td>
                   <td className="px-3 py-2 border-b border-[var(--color-border)]">
                     <StatusBadge status={tag.status} />
                   </td>
@@ -167,7 +167,7 @@ function TagCard({ tag, onAction, onDeleted }: { tag: AdminTag; onAction: () => 
       <QrThumb tagCode={tag.tagCode} />
       <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-mono text-xs text-[var(--color-fg)] truncate">{tag.tagCode}</span>
+          <span className="text-xs text-[var(--color-fg)] truncate">{tag.tagCode}</span>
           <StatusBadge status={tag.status} />
           {tag.locked && <span className="text-xs text-red-500 font-medium">잠김</span>}
         </div>
