@@ -1,5 +1,9 @@
 {
   "rewrites": [
+    {
+      "source": "/vercel-proxy/:path*",
+      "destination": "https://meinsbackend-production.up.railway.app/api/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
