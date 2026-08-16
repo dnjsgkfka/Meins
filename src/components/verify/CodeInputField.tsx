@@ -47,7 +47,7 @@ export default function CodeInputField({
 
   return (
     <div
-      className="relative select-none"
+      className="relative"
       onClick={() => !disabled && inputRef.current?.focus()}
     >
       {/* 실제 입력 input */}
@@ -67,12 +67,12 @@ export default function CodeInputField({
         onBlur={() => setFocused(false)}
         disabled={disabled}
         aria-label="인증 코드 입력"
-        className="absolute opacity-0 w-full h-full top-0 left-0 cursor-default"
-        style={{ caretColor: 'transparent' }}
+        className="absolute w-full h-full top-0 left-0 cursor-default bg-transparent border-none outline-none"
+        style={{ caretColor: 'transparent', color: 'transparent', WebkitTextFillColor: 'transparent' }}
       />
 
       {/* 표시용 블록 3개 */}
-      <div className="flex gap-1 pointer-events-none">
+      <div className="flex gap-1 pointer-events-none select-none">
         {[0, 1, 2].map((blockIdx) => {
           const chars = value.slice(blockIdx * 4, blockIdx * 4 + 4);
           const isActive = focused && activeBlock === blockIdx && !disabled;
