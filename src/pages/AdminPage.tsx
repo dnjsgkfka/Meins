@@ -8,6 +8,7 @@ import BulkCreateForm from '../components/admin/BulkCreateForm';
 import TagListTable from '../components/admin/TagListTable';
 import ForceStatusModal from '../components/admin/ForceStatusModal';
 import QrExportTab from '../components/admin/QrExportTab';
+import Logo from '../components/Logo';
 import type { AdminTag } from '../api/admin';
 
 type Tab = 'create' | 'list' | 'qr';
@@ -64,44 +65,55 @@ function AdminPageContent() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col" style={{ backgroundColor: 'var(--color-tint)' }}>
+    <div className="min-h-dvh" style={{ backgroundColor: 'var(--color-tint)' }}>
       {/* 헤더 */}
-      <div className="flex items-center justify-between px-4 py-3 bg-[var(--color-bg)] border-b border-[var(--color-border)]">
-        <h1 className="m-0 text-base font-normal text-[var(--color-fg)]">MCM 관리자</h1>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleSaveDemo}
-            disabled={isSavingDemo}
-            className="text-xs text-[var(--color-accent)] bg-transparent border-none cursor-pointer px-0 disabled:opacity-40"
-          >
-            {isSavingDemo ? '저장 중...' : '데모 설정'}
-          </button>
-          <button
-            onClick={handleLogout}
-            className="text-xs text-[var(--color-muted)] bg-transparent border-none cursor-pointer px-0"
-          >
-            키 초기화
-          </button>
+      <header
+        className="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20"
+        style={{
+          backgroundColor: 'var(--color-tint)',
+          paddingTop: 'env(safe-area-inset-top)',
+        }}
+      >
+        <div className="flex items-center justify-between px-2 h-14">
+          <div className="flex items-center gap-2 text-[var(--color-fg)]">
+            <Logo />
+            <span className="text-xs text-[var(--color-muted)]">관리자</span>
+          </div>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={handleSaveDemo}
+              disabled={isSavingDemo}
+              className="text-xs text-[var(--color-muted)] bg-transparent border-none cursor-pointer px-0 disabled:opacity-40"
+            >
+              {isSavingDemo ? '저장 중...' : '데모 설정'}
+            </button>
+            <button
+              onClick={handleLogout}
+              className="text-xs text-[var(--color-muted)] bg-transparent border-none cursor-pointer px-0"
+            >
+              키 초기화
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* 탭 */}
-      <div className="flex border-b border-[var(--color-border)] bg-[var(--color-bg)]">
-        {TABS.map(({ id, label }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className={[
-              'flex-1 py-3 text-sm border-none cursor-pointer transition-colors',
-              activeTab === id
-                ? 'text-[var(--color-fg)] border-b-2 border-[var(--color-accent)] bg-[var(--color-bg)]'
-                : 'text-[var(--color-muted)] bg-[var(--color-bg)]',
-            ].join(' ')}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+        {/* 탭 바 */}
+        <div className="flex border-b border-[var(--color-border)]">
+          {TABS.map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={[
+                'flex-1 py-3 text-xs border-none cursor-pointer transition-colors bg-transparent',
+                activeTab === id
+                  ? 'text-[var(--color-fg)] border-b-2 border-[var(--color-fg)]'
+                  : 'text-[var(--color-muted)]',
+              ].join(' ')}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </header>
 
       <ForceStatusModal
         tag={actionTag}
@@ -109,8 +121,14 @@ function AdminPageContent() {
         onDone={() => setListRefreshTrigger((n) => n + 1)}
       />
 
-      {/* 탭 콘텐츠 */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
+      {/* 콘텐츠 */}
+      <div
+        className="flex flex-col gap-6 px-2"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top) + 108px)',
+          paddingBottom: 'max(34px, env(safe-area-inset-bottom))',
+        }}
+      >
         {activeTab === 'create' && <BulkCreateForm onCreated={() => setListRefreshTrigger((n) => n + 1)} />}
         {activeTab === 'list'   && <TagListTable onNeedForceStatus={setActionTag} refreshTrigger={listRefreshTrigger} />}
         {activeTab === 'qr'     && <QrExportTab />}
