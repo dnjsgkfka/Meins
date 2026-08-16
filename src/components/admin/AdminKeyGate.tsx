@@ -1,12 +1,12 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { getAdminKey, setAdminKey, clearAdminKey } from '../../lib/adminKey';
-import { listAdminTags } from '../../api/admin';
+import { listAdminTags, AdminApiError } from '../../api/admin';
 
 interface Props {
   children: React.ReactNode;
 }
 
-type Status = 'validating' | 'authed' | 'unauthed';
+type Status = 'validating' | 'authed' | 'unauthed' | 'network_error';
 
 export default function AdminKeyGate({ children }: Props) {
   const [status, setStatus] = useState<Status>(() =>
@@ -19,11 +19,33 @@ export default function AdminKeyGate({ children }: Props) {
     if (status !== 'validating') return;
     listAdminTags()
       .then(() => setStatus('authed'))
-      .catch(() => {
-        clearAdminKey();
-        setStatus('unauthed');
+      .catch((err) => {
+        if (err instanceof AdminApiError && err.status === 401) {
+          clearAdminKey();
+          setStatus('unauthed');
+        } else if (err instanceof AdminApiError) {
+          // 백엔드 5xx — 키는 맞을 수 있으므로 통과
+          setStatus('authed');
+        } else {
+          // 네트워크 오류 — 재시도
+          setStatus('network_error');
+        }
       });
   }, [status]);
+
+  if (status === 'network_error') {
+    return (
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 px-4" style={{ backgroundColor: 'var(--color-tint)' }}>
+        <p className="m-0 text-sm text-[var(--color-muted)]">연결 오류가 발생했습니다.</p>
+        <button
+          onClick={() => setStatus('validating')}
+          className="h-11 px-6 rounded-full text-sm bg-[var(--color-accent)] text-[var(--color-bg)] border-none cursor-pointer"
+        >
+          다시 시도
+        </button>
+      </div>
+    );
+  }
 
   if (status === 'validating') {
     return (

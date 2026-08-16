@@ -1,7 +1,7 @@
 import { clearAdminKey, getAdminKey } from '../lib/adminKey';
 
 const BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ??
+  import.meta.env.VITE_ADMIN_API_BASE_URL ??
   'https://meinsbackend-production.up.railway.app';
 
 const TIMEOUT_MS = 20_000;
