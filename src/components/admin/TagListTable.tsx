@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { listAdminTags, fetchQrImageBlob, deleteTag, AdminApiError } from '../../api/admin';
 import type { AdminTag } from '../../api/admin';
 import { useAdminKeyReset } from './AdminKeyGate';
@@ -118,49 +118,23 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
         <TagCard key={tag.tagCode} tag={tag} onAction={() => onNeedForceStatus(tag)} onDeleted={load} />
       ))}
 
-        {/* 테이블 (md 이상) */}
-        <div className="hidden md:block overflow-x-auto rounded-lg border border-[var(--color-border)]">
-          <table className="w-full text-xs border-collapse">
-            <thead>
-              <tr className="bg-[var(--color-tint)]">
-                {['QR', '태그 코드', '인증 코드', '상태', '잠금', '제품명', '액션'].map((h) => (
-                  <th key={h} className="text-left px-3 py-2 font-normal text-[var(--color-muted)] border-b border-[var(--color-border)] whitespace-nowrap">{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {tags.map((tag) => (
-                <tr
-                  key={tag.tagCode}
-                  className={tag.locked ? 'bg-red-50 dark:bg-red-950/20' : 'bg-[var(--color-bg)]'}
-                >
-                  <td className="px-3 py-2 border-b border-[var(--color-border)]">
-                    <QrThumb tagCode={tag.tagCode} />
-                  </td>
-                  <td className="px-3 py-2 border-b border-[var(--color-border)] whitespace-nowrap">{tag.tagCode}</td>
-                  <td className="px-3 py-2 border-b border-[var(--color-border)] whitespace-nowrap">{tag.authCode}</td>
-                  <td className="px-3 py-2 border-b border-[var(--color-border)]">
-                    <StatusBadge status={tag.status} />
-                  </td>
-                  <td className="px-3 py-2 border-b border-[var(--color-border)]">
-                    {tag.locked && <span className="text-red-500 font-medium">잠김</span>}
-                  </td>
-                  <td className="px-3 py-2 border-b border-[var(--color-border)] max-w-[160px] truncate">{tag.productName}</td>
-                  <td className="px-3 py-2 border-b border-[var(--color-border)]">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => onNeedForceStatus(tag)}
-                        className="h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer whitespace-nowrap"
-                      >
-                        액션
-                      </button>
-                      <DeleteButton tagCode={tag.tagCode} onDeleted={load} />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4 pt-1">
+          <button
+            onClick={() => setPage((p) => p - 1)}
+            disabled={page === 1}
+            className="h-8 w-8 rounded-full border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] text-sm cursor-pointer disabled:opacity-30"
+          >
+            ‹
+          </button>
+          <span className="text-xs" style={{ color: '#8B8B8B' }}>{page} / {totalPages}</span>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            disabled={page === totalPages}
+            className="h-8 w-8 rounded-full border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] text-sm cursor-pointer disabled:opacity-30"
+          >
+            ›
+          </button>
         </div>
       )}
     </div>
@@ -178,29 +152,25 @@ function TagCard({ tag, onAction, onDeleted }: { tag: AdminTag; onAction: () => 
   }
 
   return (
-    <div className={[
-      'rounded-lg border p-3 flex gap-3',
-      tag.locked
-        ? 'border-red-300 bg-red-50 dark:bg-red-950/20 dark:border-red-800'
-        : 'border-[var(--color-border)] bg-[var(--color-bg)]',
-    ].join(' ')}>
-      <QrThumb tagCode={tag.tagCode} />
-      <div className="flex-1 min-w-0 flex flex-col gap-1">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-[var(--color-fg)] truncate">{tag.tagCode}</span>
-          <StatusBadge status={tag.status} />
-          {tag.locked && <span className="text-xs text-red-500 font-medium">잠김</span>}
-        </div>
-        <span className="text-xs text-[var(--color-muted)] font-mono">{tag.authCode}</span>
-        <span className="text-xs text-[var(--color-muted)] truncate">{tag.productName}</span>
-        <div className="mt-1 flex gap-2">
-          <button
-            onClick={onAction}
-            className="self-start h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer"
-          >
-            액션
-          </button>
-          <DeleteButton tagCode={tag.tagCode} onDeleted={onDeleted} />
+    <div className="rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)] px-4 py-3 flex flex-col gap-3">
+      <div className="flex items-center gap-4">
+        <QrImage tagCode={tag.tagCode} />
+        <div className="flex flex-col gap-1 flex-1 min-w-0">
+          <span className="leading-[1.3em] truncate" style={{ fontSize: 15, color: '#111111' }}>
+            {tag.productName}
+          </span>
+          <span className="text-xs" style={{ color: '#8B8B8B' }}>{tag.tagCode}</span>
+          {tag.authCode ? (
+            <button
+              onClick={copyAuthCode}
+              className="self-start mt-0.5 text-xs border-none bg-transparent cursor-pointer p-0 text-left leading-[1.4em]"
+              style={{ color: copied ? 'var(--color-accent)' : '#8B8B8B' }}
+            >
+              {copied ? '복사됨 ✓' : tag.authCode}
+            </button>
+          ) : (
+            <span className="text-xs" style={{ color: '#8B8B8B' }}>코드 없음</span>
+          )}
         </div>
       </div>
 
