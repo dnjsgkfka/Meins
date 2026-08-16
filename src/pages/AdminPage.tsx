@@ -13,9 +13,9 @@ import type { AdminTag } from '../api/admin';
 type Tab = 'create' | 'list' | 'qr';
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'create', label: '제품/태그 생성' },
   { id: 'list',   label: '태그 목록' },
-  { id: 'qr',     label: 'QR 다운로드' },
+  { id: 'create', label: '태그 생성' },
+  { id: 'qr',     label: 'QR 내보내기' },
 ];
 
 export default function AdminPage() {
@@ -27,7 +27,7 @@ export default function AdminPage() {
 }
 
 function AdminPageContent() {
-  const [activeTab, setActiveTab] = useState<Tab>('create');
+  const [activeTab, setActiveTab] = useState<Tab>('list');
   const [listRefreshTrigger, setListRefreshTrigger] = useState(0);
   const [actionTag, setActionTag] = useState<AdminTag | null>(null);
   const [isSavingDemo, setIsSavingDemo] = useState(false);
