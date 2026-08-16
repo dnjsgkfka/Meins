@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { listAdminTags, fetchQrImageBlob, AdminApiError } from '../../api/admin';
+import { listAdminTags, fetchQrImageBlob, deleteTag, AdminApiError } from '../../api/admin';
 import type { AdminTag } from '../../api/admin';
 import { useAdminKeyReset } from './AdminKeyGate';
 import { useToast } from '../../lib/toast';
@@ -103,7 +103,7 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
         {/* 카드 (md 미만) */}
         <div className="flex flex-col gap-3 md:hidden">
           {tags.map((tag) => (
-            <TagCard key={tag.tagCode} tag={tag} onAction={() => onNeedForceStatus(tag)} />
+            <TagCard key={tag.tagCode} tag={tag} onAction={() => onNeedForceStatus(tag)} onDeleted={load} />
           ))}
         </div>
 
@@ -136,12 +136,15 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
                   </td>
                   <td className="px-3 py-2 border-b border-[var(--color-border)] max-w-[160px] truncate">{tag.productName}</td>
                   <td className="px-3 py-2 border-b border-[var(--color-border)]">
-                    <button
-                      onClick={() => onNeedForceStatus(tag)}
-                      className="h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer whitespace-nowrap"
-                    >
-                      액션
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => onNeedForceStatus(tag)}
+                        className="h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer whitespace-nowrap"
+                      >
+                        액션
+                      </button>
+                      <DeleteButton tagCode={tag.tagCode} onDeleted={load} />
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -153,7 +156,7 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
   );
 }
 
-function TagCard({ tag, onAction }: { tag: AdminTag; onAction: () => void }) {
+function TagCard({ tag, onAction, onDeleted }: { tag: AdminTag; onAction: () => void; onDeleted: () => void }) {
   return (
     <div className={[
       'rounded-lg border p-3 flex gap-3',
@@ -170,14 +173,58 @@ function TagCard({ tag, onAction }: { tag: AdminTag; onAction: () => void }) {
         </div>
         <span className="text-xs text-[var(--color-muted)] font-mono">{tag.authCode}</span>
         <span className="text-xs text-[var(--color-muted)] truncate">{tag.productName}</span>
-        <button
-          onClick={onAction}
-          className="mt-1 self-start h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer"
-        >
-          액션
-        </button>
+        <div className="mt-1 flex gap-2">
+          <button
+            onClick={onAction}
+            className="self-start h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer"
+          >
+            액션
+          </button>
+          <DeleteButton tagCode={tag.tagCode} onDeleted={onDeleted} />
+        </div>
       </div>
     </div>
+  );
+}
+
+function DeleteButton({ tagCode, onDeleted }: { tagCode: string; onDeleted: () => void }) {
+  const [confirm, setConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const { showToast } = useToast();
+
+  async function handleDelete() {
+    setDeleting(true);
+    try {
+      await deleteTag(tagCode);
+      showToast('삭제되었습니다.');
+      onDeleted();
+    } catch {
+      showToast('삭제에 실패했습니다.');
+      setConfirm(false);
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  if (confirm) {
+    return (
+      <button
+        onClick={handleDelete}
+        disabled={deleting}
+        className="self-start h-8 px-3 rounded-full text-xs bg-[var(--color-danger)] text-white border-none cursor-pointer whitespace-nowrap disabled:opacity-50"
+      >
+        {deleting ? '삭제 중...' : '확인'}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setConfirm(true)}
+      className="self-start h-8 px-3 rounded-full text-xs border border-[var(--color-danger)] text-[var(--color-danger)] bg-[var(--color-bg)] cursor-pointer whitespace-nowrap"
+    >
+      삭제
+    </button>
   );
 }
 

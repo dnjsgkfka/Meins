@@ -146,6 +146,10 @@ export function forceStatus(tagCode: string, action: ForceStatusAction): Promise
   });
 }
 
+export function deleteTag(tagCode: string): Promise<void> {
+  return adminFetch(`/admin/tags/${tagCode}`, { method: 'DELETE' });
+}
+
 export function fetchQrImageBlob(tagCode: string): Promise<Blob> {
   return adminFetchBlob(`/admin/qr/${tagCode}`);
 }
