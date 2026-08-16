@@ -4,11 +4,12 @@ import type { AdminTag } from '../../api/admin';
 import { useAdminKeyReset } from './AdminKeyGate';
 import { useToast } from '../../lib/toast';
 
-function useQrImage(tagCode: string, enabled: boolean) {
+const ITEMS_PER_PAGE = 10;
+
+function useQrImage(tagCode: string) {
   const [src, setSrc] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!enabled) return;
     let objectUrl: string | null = null;
     fetchQrImageBlob(tagCode)
       .then((blob) => {
@@ -17,15 +18,25 @@ function useQrImage(tagCode: string, enabled: boolean) {
       })
       .catch(() => setSrc(null));
     return () => { if (objectUrl) URL.revokeObjectURL(objectUrl); };
-  }, [tagCode, enabled]);
+  }, [tagCode]);
 
   return src;
 }
 
-function QrThumb({ tagCode }: { tagCode: string }) {
-  const src = useQrImage(tagCode, true);
-  if (!src) return <div className="w-12 h-12 rounded bg-[var(--color-tint)] shimmer shrink-0" />;
-  return <img src={src} alt={`QR ${tagCode}`} className="w-12 h-12 rounded object-contain shrink-0" />;
+function QrImage({ tagCode }: { tagCode: string }) {
+  const src = useQrImage(tagCode);
+  if (!src) {
+    return <div className="w-[100px] h-[100px] rounded shrink-0 bg-[var(--color-tint)] shimmer" />;
+  }
+  return (
+    <button
+      onClick={() => window.open(`/t/${tagCode}`, '_blank')}
+      className="w-[100px] h-[100px] rounded shrink-0 border-none cursor-pointer p-0 bg-transparent block"
+      title="태그 페이지 열기"
+    >
+      <img src={src} alt={`QR ${tagCode}`} className="w-full h-full object-contain rounded" />
+    </button>
+  );
 }
 
 interface Props {
@@ -40,6 +51,7 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
   const [tags, setTags] = useState<AdminTag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
 
   async function load() {
     setIsLoading(true);
@@ -47,6 +59,7 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
     try {
       const data = await listAdminTags();
       setTags(data);
+      setPage(1);
     } catch (err) {
       if (err instanceof AdminApiError && err.code === 'ADMIN_KEY_INVALID') {
         showToast('관리자 키가 유효하지 않습니다. 다시 입력해주세요.');
@@ -65,7 +78,7 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
     return (
       <div className="flex flex-col gap-3">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-24 rounded-lg shimmer" />
+          <div key={i} className="h-32 rounded-lg shimmer" />
         ))}
       </div>
     );
@@ -86,10 +99,13 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
     return <p className="m-0 text-sm text-[var(--color-muted)]">태그가 없습니다.</p>;
   }
 
+  const totalPages = Math.ceil(tags.length / ITEMS_PER_PAGE);
+  const paged = tags.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
+
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <p className="m-0 text-xs text-[var(--color-muted)]">총 {tags.length}개</p>
+        <p className="m-0 text-xs" style={{ color: '#8B8B8B' }}>총 {tags.length}개</p>
         <button
           onClick={load}
           className="h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer"
@@ -98,14 +114,9 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
         </button>
       </div>
 
-      {/* 모바일: 카드, md 이상: 테이블 */}
-      <>
-        {/* 카드 (md 미만) */}
-        <div className="flex flex-col gap-3 md:hidden">
-          {tags.map((tag) => (
-            <TagCard key={tag.tagCode} tag={tag} onAction={() => onNeedForceStatus(tag)} onDeleted={load} />
-          ))}
-        </div>
+      {paged.map((tag) => (
+        <TagCard key={tag.tagCode} tag={tag} onAction={() => onNeedForceStatus(tag)} onDeleted={load} />
+      ))}
 
         {/* 테이블 (md 이상) */}
         <div className="hidden md:block overflow-x-auto rounded-lg border border-[var(--color-border)]">
@@ -151,12 +162,21 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
             </tbody>
           </table>
         </div>
-      </>
+      )}
     </div>
   );
 }
 
 function TagCard({ tag, onAction, onDeleted }: { tag: AdminTag; onAction: () => void; onDeleted: () => void }) {
+  const [copied, setCopied] = useState(false);
+
+  function copyAuthCode() {
+    navigator.clipboard.writeText(tag.authCode).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
   return (
     <div className={[
       'rounded-lg border p-3 flex gap-3',
@@ -182,6 +202,20 @@ function TagCard({ tag, onAction, onDeleted }: { tag: AdminTag; onAction: () => 
           </button>
           <DeleteButton tagCode={tag.tagCode} onDeleted={onDeleted} />
         </div>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="text-xs mr-auto" style={{ color: '#8B8B8B' }}>
+          {tag.status === 'REGISTERED' ? '등록됨' : '미등록'}
+          {tag.locked ? ' · 잠김' : ''}
+        </span>
+        <button
+          onClick={onAction}
+          className="h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer"
+        >
+          액션
+        </button>
+        <DeleteButton tagCode={tag.tagCode} onDeleted={onDeleted} />
       </div>
     </div>
   );
@@ -211,7 +245,7 @@ function DeleteButton({ tagCode, onDeleted }: { tagCode: string; onDeleted: () =
       <button
         onClick={handleDelete}
         disabled={deleting}
-        className="self-start h-8 px-3 rounded-full text-xs bg-[var(--color-danger)] text-white border-none cursor-pointer whitespace-nowrap disabled:opacity-50"
+        className="h-8 px-3 rounded-full text-xs bg-[var(--color-danger)] text-white border-none cursor-pointer whitespace-nowrap disabled:opacity-50"
       >
         {deleting ? '삭제 중...' : '확인'}
       </button>
@@ -221,21 +255,9 @@ function DeleteButton({ tagCode, onDeleted }: { tagCode: string; onDeleted: () =
   return (
     <button
       onClick={() => setConfirm(true)}
-      className="self-start h-8 px-3 rounded-full text-xs border border-[var(--color-danger)] text-[var(--color-danger)] bg-[var(--color-bg)] cursor-pointer whitespace-nowrap"
+      className="h-8 px-3 rounded-full text-xs border border-[var(--color-danger)] text-[var(--color-danger)] bg-[var(--color-bg)] cursor-pointer whitespace-nowrap"
     >
       삭제
     </button>
-  );
-}
-
-function StatusBadge({ status }: { status: AdminTag['status'] }) {
-  const isReg = status === 'REGISTERED';
-  return (
-    <span className={[
-      'inline-block px-2 py-0.5 rounded-full text-[10px]',
-      isReg ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-[var(--color-tint)] text-[var(--color-muted)]',
-    ].join(' ')}>
-      {isReg ? '등록됨' : '미등록'}
-    </span>
   );
 }
