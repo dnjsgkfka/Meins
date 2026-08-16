@@ -198,9 +198,8 @@ export default function ChatPage() {
               .filter((msg, i, arr) => {
                 if (msg.role === 'user') {
                   const next = arr[i + 1];
-                  const nextIsEmptyOrMissing =
-                    !next || (next.role === 'assistant' && !next.content.trim());
-                  if (nextIsEmptyOrMissing) {
+                  const hasResponse = next?.role === 'assistant' && !!next.content.trim();
+                  if (!hasResponse) {
                     return isStreaming && i === arr.length - 2;
                   }
                 }
