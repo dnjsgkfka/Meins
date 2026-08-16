@@ -212,8 +212,8 @@ export default function BulkCreateForm({ onCreated }: { onCreated?: () => void }
                 {result.tags.map((tag, i) => (
                   <tr key={tag.tagCode} className="bg-[var(--color-bg)]">
                     <td className="px-3 py-2 text-[var(--color-muted)] border-b border-[var(--color-border)]">{i + 1}</td>
-                    <td className="px-3 py-2 text-[var(--color-fg)] font-mono border-b border-[var(--color-border)] whitespace-nowrap">{tag.tagCode}</td>
-                    <td className="px-3 py-2 text-[var(--color-fg)] font-mono border-b border-[var(--color-border)] whitespace-nowrap">{tag.authCode}</td>
+                    <td className="px-3 py-2 text-[var(--color-fg)] border-b border-[var(--color-border)] whitespace-nowrap">{tag.tagCode}</td>
+                    <td className="px-3 py-2 text-[var(--color-fg)] border-b border-[var(--color-border)] whitespace-nowrap">{tag.authCode}</td>
                   </tr>
                 ))}
               </tbody>

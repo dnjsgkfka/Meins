@@ -109,7 +109,7 @@ export default function VerifyPage() {
 
       {/* 하단 고정 영역 */}
       <div
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20 flex flex-col items-center gap-2 px-2"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20 flex flex-col items-stretch gap-2 px-2"
         style={{
           background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--color-tint) 40%)',
           backdropFilter: 'blur(1.5px)',
@@ -120,7 +120,7 @@ export default function VerifyPage() {
       >
         <button
           onClick={() => setSheetOpen(true)}
-          className="text-xs text-[var(--color-fg)] underline bg-transparent border-none cursor-pointer tracking-[0.04em]"
+          className="text-left text-xs text-[var(--color-fg)] underline bg-transparent border-none cursor-pointer tracking-[0.04em]"
         >
           코드를 찾을 수 없나요?
         </button>

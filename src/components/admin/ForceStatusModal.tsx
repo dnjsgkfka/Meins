@@ -107,7 +107,7 @@ export default function ForceStatusModal({ tag, onClose, onDone }: Props) {
         {/* 태그 정보 */}
         <div className="flex flex-col gap-0.5">
           <p className="m-0 text-xs text-[var(--color-muted)]">액션 선택</p>
-          <p className="m-0 text-base font-mono text-[var(--color-fg)]">{tag.tagCode}</p>
+          <p className="m-0 text-base text-[var(--color-fg)]">{tag.tagCode}</p>
           <p className="m-0 text-xs text-[var(--color-muted)]">
             {tag.status === 'REGISTERED' ? '등록됨' : '미등록'}
             {tag.locked ? ' · 잠김' : ''}
