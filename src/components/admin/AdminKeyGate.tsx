@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { getAdminKey, setAdminKey, clearAdminKey } from '../../lib/adminKey';
-import { listAdminTags } from '../../api/admin';
+import { listAdminTags, AdminApiError } from '../../api/admin';
 
 interface Props {
   children: React.ReactNode;
@@ -19,9 +19,14 @@ export default function AdminKeyGate({ children }: Props) {
     if (status !== 'validating') return;
     listAdminTags()
       .then(() => setStatus('authed'))
-      .catch(() => {
-        clearAdminKey();
-        setStatus('unauthed');
+      .catch((err) => {
+        if (err instanceof AdminApiError && err.status === 401) {
+          clearAdminKey();
+          setStatus('unauthed');
+        } else {
+          // 백엔드 500 또는 네트워크 오류 — 키는 맞을 수 있으므로 통과
+          setStatus('authed');
+        }
       });
   }, [status]);
 
