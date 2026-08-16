@@ -27,6 +27,12 @@ export const fetchChatHistory = (tagCode: string, token: string) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+export const postTransferOwnership = (tagCode: string, body: VerifyOwnershipRequest) =>
+  apiFetch<VerifyOwnershipResponse>(`/tags/${tagCode}/ownership/transfer`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+
 export const postTransferCode = (tagCode: string, token: string) =>
   apiFetch<TransferCodeResponse>(`/tags/${tagCode}/ownership/transfer-code`, {
     method: 'POST',

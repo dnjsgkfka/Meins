@@ -82,7 +82,7 @@ function QrRow({ entry }: { entry: ReturnType<typeof toDisplayEntry> }) {
   }, [entry.tagCode]);
 
   return (
-    <div className="flex items-center gap-4 rounded-lg bg-[var(--color-bg)] px-4 py-3" style={{ boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)' }}>
+    <div className="flex items-center gap-4 rounded-lg bg-[var(--color-bg)] px-4 py-3">
       <canvas ref={canvasRef} width={100} height={100} className="shrink-0 rounded" />
       <div className="flex flex-col gap-1">
         <span className="text-xs" style={{ color: '#8B8B8B' }}>{entry.label}</span>
@@ -98,7 +98,7 @@ function DemoBox({ entry, onClick }: { entry: ReturnType<typeof toDisplayEntry>;
     <button
       onClick={onClick}
       className="w-full flex items-center justify-between rounded-lg bg-[var(--color-bg)] border-none cursor-pointer text-left"
-      style={{ padding: 8, boxShadow: '0px 4px 16px 0px rgba(0,0,0,0.08)' }}
+      style={{ padding: 8 }}
     >
       <div className="flex flex-col gap-2" style={{ width: 153 }}>
         <span className="text-xs leading-[1.4em] tracking-[0.04em]" style={{ color: '#8B8B8B' }}>{entry.label}</span>
