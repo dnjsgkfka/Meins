@@ -1,6 +1,8 @@
 import type { ChatPresetType } from '../types/api';
 import { ApiError } from './client';
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+
 export interface ChatBody {
   message?: string;
   preset?: ChatPresetType;
@@ -19,7 +21,7 @@ export async function* streamChat(
     return;
   }
 
-  const res = await fetch(`/api/tags/${tagCode}/chat`, {
+  const res = await fetch(`${BASE_URL}/tags/${tagCode}/chat`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
