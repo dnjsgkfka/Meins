@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 
-export function useMinDelay(isLoading: boolean, minMs: number = 400): boolean {
+export function useMinDelay(isLoading: boolean, minMs: number = 600): boolean {
   const [showLoading, setShowLoading] = useState(isLoading);
   const loadStartRef = useRef<number | null>(null);
 
