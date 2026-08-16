@@ -194,9 +194,29 @@ export default function ChatPage() {
                 createdAt: '',
               }}
             />
-            {messages.map((msg, i) => (
-              <MessageBubble key={i} message={msg} aborted={msg.aborted} isStreaming={isStreaming && i === messages.length - 1 && msg.role === 'assistant'} />
-            ))}
+            {messages
+              .filter((msg, i, arr) => {
+                if (msg.role === 'user') {
+                  const next = arr[i + 1];
+                  if (next && next.role === 'assistant' && !next.content) {
+                    const isStreamingTarget = isStreaming && i + 1 === arr.length - 1;
+                    return isStreamingTarget;
+                  }
+                }
+                if (msg.role === 'assistant' && !msg.content) {
+                  const isStreamingTarget = isStreaming && i === arr.length - 1;
+                  return isStreamingTarget;
+                }
+                return true;
+              })
+              .map((msg, i) => (
+                <MessageBubble
+                  key={i}
+                  message={msg}
+                  aborted={msg.aborted}
+                  isStreaming={isStreaming && msg === messages[messages.length - 1] && msg.role === 'assistant'}
+                />
+              ))}
           </>
         )}
       </div>
