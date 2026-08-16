@@ -47,7 +47,7 @@ export default function CodeInputField({
 
   return (
     <div
-      className="relative select-none"
+      className="relative"
       onClick={() => !disabled && inputRef.current?.focus()}
     >
       {/* 실제 입력 input */}
@@ -72,7 +72,7 @@ export default function CodeInputField({
       />
 
       {/* 표시용 블록 3개 */}
-      <div className="flex gap-1 pointer-events-none">
+      <div className="flex gap-1 pointer-events-none select-none">
         {[0, 1, 2].map((blockIdx) => {
           const chars = value.slice(blockIdx * 4, blockIdx * 4 + 4);
           const isActive = focused && activeBlock === blockIdx && !disabled;
