@@ -16,6 +16,11 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/dev-proxy/, '/api'),
       },
+      '/admin-proxy': {
+        target: 'https://meinsbackend-production.up.railway.app',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/admin-proxy/, ''),
+      },
     },
   },
 })

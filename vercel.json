@@ -4,6 +4,10 @@
       "source": "/vercel-proxy/:path*",
       "destination": "https://meinsbackend-production.up.railway.app/api/:path*"
     },
+    {
+      "source": "/admin-proxy/:path*",
+      "destination": "https://meinsbackend-production.up.railway.app/:path*"
+    },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
