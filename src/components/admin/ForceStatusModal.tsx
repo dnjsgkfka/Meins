@@ -157,7 +157,7 @@ export default function ForceStatusModal({ tag, onClose, onDone }: Props) {
                 className={[
                   'w-full h-12 rounded-xl text-sm text-left px-4 border cursor-pointer flex items-center justify-between',
                   def.danger
-                    ? 'border-red-200 bg-red-50 text-red-600 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400'
+                    ? 'border-red-200 bg-red-50 text-red-600'
                     : 'border-[var(--color-border)] bg-[var(--color-bg)] text-[var(--color-fg)]',
                 ].join(' ')}
               >

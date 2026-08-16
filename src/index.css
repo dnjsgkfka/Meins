@@ -11,18 +11,6 @@
   --color-icon-inactive: #CECECE;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-bg: #111111;
-    --color-fg: #F0F0F0;
-    --color-muted: #8B8B8B;
-    --color-accent: #F0F0F0;
-    --color-danger: #f87171;
-    --color-border: #2D2D2D;
-    --color-tint: #1D1D1D;
-    --color-icon-inactive: #5D5D5D;
-  }
-}
 
 body {
   background-color: var(--color-bg);
@@ -48,15 +36,6 @@ body {
     inset -4px -4px 2px 0px rgba(255, 255, 255, 0.04);
 }
 
-@media (prefers-color-scheme: dark) {
-  .shadow-tapbar {
-    box-shadow: 0px 8px 30px 0px rgba(0, 0, 0, 0.35), 0px 2px 5px 0px rgba(0, 0, 0, 0.25);
-  }
-
-  .shadow-card {
-    box-shadow: 0px 4px 16px 0px rgba(0, 0, 0, 0.35);
-  }
-}
 
 .no-scrollbar {
   -ms-overflow-style: none;
