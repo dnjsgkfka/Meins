@@ -28,13 +28,13 @@ export const fetchChatHistory = (tagCode: string, token: string) =>
   });
 
 export const postTransferCode = (tagCode: string, token: string) =>
-  apiFetch<TransferCodeResponse>(`/tags/${tagCode}/transfer`, {
+  apiFetch<TransferCodeResponse>(`/tags/${tagCode}/ownership/transfer-code`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` },
   });
 
 export const deleteTransferCode = (tagCode: string, token: string) =>
-  apiFetch<void>(`/tags/${tagCode}/transfer`, {
+  apiFetch<void>(`/tags/${tagCode}/ownership/transfer-code`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   });
