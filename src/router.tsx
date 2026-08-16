@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import LandingPage from './pages/LandingPage';
 import TagEntryPage from './pages/TagEntryPage';
 import VerifyPage from './pages/VerifyPage';
+import TransferPage from './pages/TransferPage';
 import OwnerHomePage from './pages/OwnerHomePage';
 import OwnershipPage from './pages/OwnershipPage';
 import ChatPage from './pages/ChatPage';
@@ -31,6 +32,10 @@ export const router = createBrowserRouter([
           {
             path: 'verify',
             element: <VerifyPage />,
+          },
+          {
+            path: 'transfer',
+            element: <TransferPage />,
           },
           {
             element: <RequireOwner />,
