@@ -41,6 +41,13 @@ const ACTIONS: ActionDef[] = [
     confirmLabel: '초기화 실행',
     danger: true,
   },
+  {
+    action: 'RESET_CREDIT',
+    label: '크레딧 재충전',
+    desc: '챗 이력·소유 정보는 그대로 두고 크레딧만 한도까지 재충전합니다.',
+    confirmLabel: '재충전',
+    danger: false,
+  },
 ];
 
 interface Props {
@@ -94,15 +101,11 @@ export default function ForceStatusModal({ tag, onClose, onDone }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center"
+      className="fixed inset-0 z-50 flex items-center justify-center"
       style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
       onClick={(e) => { if (e.target === e.currentTarget && !isLoading) { setPending(null); onClose(); } }}
     >
-      <div className="w-full max-w-lg bg-[var(--color-bg)] rounded-t-2xl pb-safe px-4 pt-5 flex flex-col gap-4"
-           style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
-
-        {/* 핸들 */}
-        <div className="w-10 h-1 rounded-full bg-[var(--color-icon-inactive)] self-center mb-1" />
+      <div className="w-full max-w-sm bg-[var(--color-bg)] rounded-2xl px-4 pt-5 pb-6 flex flex-col gap-4 mx-4">
 
         {/* 태그 정보 */}
         <div className="flex flex-col gap-0.5">
