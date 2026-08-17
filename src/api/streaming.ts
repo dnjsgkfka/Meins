@@ -51,7 +51,7 @@ export async function* streamChat(
 
       for (const line of lines) {
         if (line.startsWith('data: ')) {
-          const data = line.slice(6).trim();
+          const data = line.slice(6);
           if (data === '[DONE]') return;
           yield data;
         }
