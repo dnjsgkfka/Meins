@@ -64,11 +64,11 @@ export default function OwnershipPage() {
     const token = getToken(tagCode!) ?? '';
     try {
       await deleteTransferCode(tagCode!, token);
-      setTransferCode(null);
-      setExpiresAt(null);
     } catch {
       showToast('양도 취소에 실패했습니다.');
     } finally {
+      setTransferCode(null);
+      setExpiresAt(null);
       setIsCanceling(false);
     }
   }
