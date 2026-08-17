@@ -124,6 +124,7 @@ export interface AdminTag {
   locked: boolean;
   productName: string;
   qrImageUrl: string;
+  transferCount: number;
 }
 
 // ─── API 함수 ────────────────────────────────────────────────────────────────
