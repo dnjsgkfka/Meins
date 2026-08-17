@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router';
 import type { TagDetailResponse } from '../types/api';
 import PageHeader from '../components/PageHeader';
-import ProductHero from '../components/product/ProductHero';
+import ImageCarousel from '../components/product/ImageCarousel';
 import InfoList from '../components/product/InfoList';
 import type { InfoGroup } from '../components/product/InfoList';
 import { formatSize, formatDateTime } from '../lib/format';
@@ -79,7 +79,10 @@ export default function GuestViewPage({ tagCode, data }: Props) {
               # {product.modelCode}
             </p>
           </div>
-          <ProductHero src={product.heroImage} alt={product.name} />
+          <ImageCarousel
+            images={[product.heroImage, ...(product.detailImages ?? [])].filter(Boolean)}
+            alt={product.name}
+          />
         </div>
 
         {/* 정보 목록 */}
