@@ -74,9 +74,12 @@ export default function ChatPage() {
   }, []);
 
   useEffect(() => {
-    if (isNearBottomRef.current && scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-    }
+    if (!isNearBottomRef.current) return;
+    requestAnimationFrame(() => {
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+      }
+    });
   }, [messages]);
 
   // 텍스트 지워지면 textarea 높이 초기화
@@ -172,7 +175,7 @@ export default function ChatPage() {
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto no-scrollbar flex flex-col gap-2 px-2"
+        className="flex-1 min-h-0 overflow-y-auto no-scrollbar flex flex-col gap-2 px-2"
         style={{
           paddingTop: 'calc(env(safe-area-inset-top) + 56px)',
           paddingBottom: keyboardOpen ? 180 : 200,

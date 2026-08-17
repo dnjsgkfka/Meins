@@ -2,7 +2,7 @@ import { useOutletContext, useParams } from 'react-router';
 import type { OwnerMeResponse } from '../types/api';
 import PageHeader from '../components/PageHeader';
 import BottomTabBar from '../components/BottomTabBar';
-import ProductHero from '../components/product/ProductHero';
+import ImageCarousel from '../components/product/ImageCarousel';
 import InfoList from '../components/product/InfoList';
 import type { InfoGroup } from '../components/product/InfoList';
 import { formatSize, formatDateTime } from '../lib/format';
@@ -60,7 +60,10 @@ export default function OwnerHomePage() {
             <h1 className="m-0 text-2xl font-normal leading-8 text-[var(--color-fg)]">{product.name}</h1>
             <p className="m-0 text-xs leading-4 tracking-wide text-[var(--color-muted)]"># {product.modelCode}</p>
           </div>
-          <ProductHero src={product.heroImage} alt={product.name} />
+          <ImageCarousel
+            images={[product.heroImage, ...(product.detailImages ?? [])].filter(Boolean)}
+            alt={product.name}
+          />
         </div>
 
         <div>
