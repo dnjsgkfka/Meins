@@ -25,7 +25,7 @@ export default function RequireOwner() {
 
     let cancelled = false;
 
-    async function verify() {
+    async function verify(showNetworkError = true) {
       try {
         const result = await fetchOwnerMe(tagCode!, token!);
         if (!cancelled) setData(result);
@@ -37,7 +37,7 @@ export default function RequireOwner() {
         ) {
           clearToken(tagCode!);
           navigate(`/t/${tagCode}`, { replace: true });
-        } else {
+        } else if (showNetworkError) {
           showToast('네트워크 연결을 확인해 주세요.');
         }
       } finally {
@@ -46,7 +46,16 @@ export default function RequireOwner() {
     }
 
     verify();
-    return () => { cancelled = true; };
+
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') verify(false);
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [tagCode, navigate, showToast]);
 
   if (loading) return <LoadingSpinner />;
