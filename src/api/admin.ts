@@ -115,7 +115,7 @@ export interface BulkCreateResult {
 }
 
 export type TagStatus = 'UNREGISTERED' | 'REGISTERED';
-export type ForceStatusAction = 'UNLOCK' | 'UNLOCK_RECOVERY' | 'REGISTERED' | 'UNREGISTERED';
+export type ForceStatusAction = 'UNLOCK' | 'UNLOCK_RECOVERY' | 'REGISTERED' | 'UNREGISTERED' | 'RESET_CREDIT';
 
 export interface AdminTag {
   tagCode: string;
@@ -124,6 +124,7 @@ export interface AdminTag {
   locked: boolean;
   productName: string;
   qrImageUrl: string;
+  transferCount: number;
 }
 
 // ─── API 함수 ────────────────────────────────────────────────────────────────
