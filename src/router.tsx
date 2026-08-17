@@ -12,15 +12,15 @@ import RequireOwner from './components/RequireOwner';
 
 export const router = createBrowserRouter([
   {
+    path: '/admin',
+    element: <AdminPage />,
+  },
+  {
     element: <Layout />,
     children: [
       {
         path: '/',
         element: <LandingPage />,
-      },
-      {
-        path: '/admin',
-        element: <AdminPage />,
       },
       {
         path: '/t/:tagCode',

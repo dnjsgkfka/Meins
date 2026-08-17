@@ -1,10 +1,10 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { listAdminTags, fetchQrImageBlob, deleteTag, AdminApiError } from '../../api/admin';
 import type { AdminTag } from '../../api/admin';
 import { useAdminKeyReset } from './AdminKeyGate';
 import { useToast } from '../../lib/toast';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 24;
 
 function useQrImage(tagCode: string) {
   const [src, setSrc] = useState<string | null>(null);
@@ -26,15 +26,15 @@ function useQrImage(tagCode: string) {
 function QrImage({ tagCode }: { tagCode: string }) {
   const src = useQrImage(tagCode);
   if (!src) {
-    return <div className="w-[100px] h-[100px] rounded shrink-0 bg-[var(--color-tint)] shimmer" />;
+    return <div className="w-20 h-20 rounded-lg shrink-0 bg-[var(--color-tint)] shimmer" />;
   }
   return (
     <button
       onClick={() => window.open(`/t/${tagCode}`, '_blank')}
-      className="w-[100px] h-[100px] rounded shrink-0 border-none cursor-pointer p-0 bg-transparent block"
+      className="w-20 h-20 rounded-lg shrink-0 border-none cursor-pointer p-0 bg-transparent block"
       title="태그 페이지 열기"
     >
-      <img src={src} alt={`QR ${tagCode}`} className="w-full h-full object-contain rounded" />
+      <img src={src} alt={`QR ${tagCode}`} className="w-full h-full object-contain rounded-lg" />
     </button>
   );
 }
@@ -76,9 +76,9 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-3">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-32 rounded-lg shimmer" />
+      <div className="grid grid-cols-3 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="h-36 rounded-xl shimmer" />
         ))}
       </div>
     );
@@ -88,7 +88,10 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
     return (
       <div className="flex flex-col gap-3">
         <p className="m-0 text-sm text-[var(--color-danger)]">{error}</p>
-        <button onClick={load} className="self-start h-9 px-4 rounded-full text-xs bg-[var(--color-accent)] text-[var(--color-bg)] border-none cursor-pointer">
+        <button
+          onClick={load}
+          className="self-start h-9 px-4 rounded-full text-xs bg-[var(--color-accent)] text-[var(--color-bg)] border-none cursor-pointer"
+        >
           다시 시도
         </button>
       </div>
@@ -103,9 +106,10 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
   const paged = tags.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-6 w-full">
+      {/* 툴바 */}
       <div className="flex items-center justify-between">
-        <p className="m-0 text-xs" style={{ color: '#8B8B8B' }}>총 {tags.length}개</p>
+        <p className="m-0 text-xs text-[var(--color-muted)]">총 {tags.length}개</p>
         <button
           onClick={load}
           className="h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer"
@@ -114,12 +118,16 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
         </button>
       </div>
 
-      {paged.map((tag) => (
-        <TagCard key={tag.tagCode} tag={tag} onAction={() => onNeedForceStatus(tag)} onDeleted={load} />
-      ))}
+      {/* 카드 그리드 */}
+      <div className="grid grid-cols-3 gap-4">
+        {paged.map((tag) => (
+          <TagCard key={tag.tagCode} tag={tag} onAction={() => onNeedForceStatus(tag)} onDeleted={load} />
+        ))}
+      </div>
 
+      {/* 페이지네이션 */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-4 pt-1">
+        <div className="flex items-center justify-center gap-4">
           <button
             onClick={() => setPage((p) => p - 1)}
             disabled={page === 1}
@@ -127,7 +135,7 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
           >
             ‹
           </button>
-          <span className="text-xs" style={{ color: '#8B8B8B' }}>{page} / {totalPages}</span>
+          <span className="text-xs text-[var(--color-muted)]">{page} / {totalPages}</span>
           <button
             onClick={() => setPage((p) => p + 1)}
             disabled={page === totalPages}
@@ -151,34 +159,61 @@ function TagCard({ tag, onAction, onDeleted }: { tag: AdminTag; onAction: () => 
     });
   }
 
+  const isRegistered = tag.status === 'REGISTERED';
+
   return (
-    <div className="rounded-lg bg-[var(--color-bg)] border border-[var(--color-border)] px-4 py-3 flex flex-col gap-3">
-      <div className="flex items-center gap-4">
+    <div className="flex flex-col rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] overflow-hidden">
+      {/* 카드 본문 */}
+      <div className="flex gap-3 p-4">
         <QrImage tagCode={tag.tagCode} />
-        <div className="flex flex-col gap-1 flex-1 min-w-0">
-          <span className="leading-[1.3em] truncate" style={{ fontSize: 15, color: '#111111' }}>
+
+        <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+          {/* 제품명 */}
+          <p className="m-0 text-sm font-medium text-[var(--color-fg)] leading-tight line-clamp-2">
             {tag.productName}
-          </span>
-          <span className="text-xs" style={{ color: '#8B8B8B' }}>{tag.tagCode}</span>
+          </p>
+
+          {/* 태그 코드 */}
+          <p className="m-0 text-xs text-[var(--color-muted)] tracking-wide">
+            {tag.tagCode}
+          </p>
+
+          {/* 상태 + 이전 횟수 */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              className="text-xs px-1.5 py-0.5 rounded"
+              style={{
+                backgroundColor: isRegistered ? 'rgba(34,197,94,0.12)' : 'var(--color-tint)',
+                color: isRegistered ? 'rgb(22,163,74)' : 'var(--color-muted)',
+              }}
+            >
+              {isRegistered ? '등록됨' : '미등록'}
+            </span>
+            {tag.locked && (
+              <span className="text-xs px-1.5 py-0.5 rounded" style={{ backgroundColor: 'rgba(239,68,68,0.12)', color: 'rgb(220,38,38)' }}>
+                잠김
+              </span>
+            )}
+            <span className="text-xs text-[var(--color-muted)]">이전 {tag.transferCount ?? 0}회</span>
+          </div>
+
+          {/* 인증 코드 */}
           {tag.authCode ? (
             <button
               onClick={copyAuthCode}
-              className="self-start mt-0.5 text-xs border-none bg-transparent cursor-pointer p-0 text-left leading-[1.4em]"
-              style={{ color: copied ? 'var(--color-accent)' : '#8B8B8B' }}
+              className="self-start text-xs border-none bg-transparent cursor-pointer p-0 text-left"
+              style={{ color: copied ? 'var(--color-accent)' : 'var(--color-muted)' }}
             >
               {copied ? '복사됨 ✓' : tag.authCode}
             </button>
           ) : (
-            <span className="text-xs" style={{ color: '#8B8B8B' }}>코드 없음</span>
+            <span className="text-xs text-[var(--color-muted)]">인증 코드 없음</span>
           )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-xs mr-auto" style={{ color: '#8B8B8B' }}>
-          {tag.status === 'REGISTERED' ? '등록됨' : '미등록'}
-          {tag.locked ? ' · 잠김' : ''}
-        </span>
+      {/* 액션 */}
+      <div className="flex items-center justify-between px-4 pb-4 gap-2">
         <button
           onClick={onAction}
           className="h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer"
@@ -212,20 +247,28 @@ function DeleteButton({ tagCode, onDeleted }: { tagCode: string; onDeleted: () =
 
   if (confirm) {
     return (
-      <button
-        onClick={handleDelete}
-        disabled={deleting}
-        className="h-8 px-3 rounded-full text-xs bg-[var(--color-danger)] text-white border-none cursor-pointer whitespace-nowrap disabled:opacity-50"
-      >
-        {deleting ? '삭제 중...' : '확인'}
-      </button>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setConfirm(false)}
+          className="h-8 px-3 rounded-full text-xs border border-[var(--color-icon-inactive)] bg-[var(--color-bg)] text-[var(--color-fg)] cursor-pointer"
+        >
+          취소
+        </button>
+        <button
+          onClick={handleDelete}
+          disabled={deleting}
+          className="h-8 px-3 rounded-full text-xs bg-[var(--color-danger)] text-white border-none cursor-pointer disabled:opacity-50"
+        >
+          {deleting ? '삭제 중...' : '확인'}
+        </button>
+      </div>
     );
   }
 
   return (
     <button
       onClick={() => setConfirm(true)}
-      className="h-8 px-3 rounded-full text-xs border border-[var(--color-danger)] text-[var(--color-danger)] bg-[var(--color-bg)] cursor-pointer whitespace-nowrap"
+      className="h-8 px-3 rounded-full text-xs border border-[var(--color-danger)] text-[var(--color-danger)] bg-[var(--color-bg)] cursor-pointer"
     >
       삭제
     </button>
