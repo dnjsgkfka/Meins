@@ -2,4 +2,4 @@
 
 ## 🔗[Meins Link](https://meins-five.vercel.app)
 
-- [게스트 뷰(guest view) 보기](https://meins-five.vercel.app/t/HV4O-C7SH)
+- [게스트 뷰(guest view) 보기](https://meins-five.vercel.app/t/BSKL-3Y77)
