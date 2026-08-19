@@ -32,6 +32,7 @@ function AdminPageContent() {
   const [listRefreshTrigger, setListRefreshTrigger] = useState(0);
   const [actionTag, setActionTag] = useState<AdminTag | null>(null);
   const [isSavingDemo, setIsSavingDemo] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const resetKey = useAdminKeyReset();
   const { showToast } = useToast();
 
@@ -66,9 +67,20 @@ function AdminPageContent() {
 
   return (
     <div className="flex min-h-dvh" style={{ backgroundColor: 'var(--color-tint)' }}>
+      {/* 모바일 오버레이 */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-10 bg-black/40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* 사이드바 */}
       <aside
-        className="fixed left-0 top-0 bottom-0 w-52 flex flex-col z-20 border-r border-[var(--color-border)]"
+        className={[
+          'fixed left-0 top-0 bottom-0 w-52 flex flex-col z-20 border-r border-[var(--color-border)] transition-transform duration-200',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
+        ].join(' ')}
         style={{ backgroundColor: 'var(--color-bg)' }}
       >
         {/* 로고 */}
@@ -82,7 +94,7 @@ function AdminPageContent() {
           {TABS.map(({ id, label }) => (
             <button
               key={id}
-              onClick={() => setActiveTab(id)}
+              onClick={() => { setActiveTab(id); setSidebarOpen(false); }}
               className={[
                 'w-full text-left px-3 py-2.5 rounded-lg text-sm transition-colors border-none cursor-pointer',
                 activeTab === id
@@ -114,19 +126,29 @@ function AdminPageContent() {
       </aside>
 
       {/* 메인 */}
-      <main className="flex flex-col flex-1 min-h-dvh" style={{ marginLeft: 208 }}>
+      <main className="flex flex-col flex-1 min-h-dvh lg:ml-52">
         {/* 콘텐츠 헤더 */}
         <div
-          className="sticky top-0 z-10 flex items-center px-8 h-16 border-b border-[var(--color-border)]"
+          className="sticky top-0 z-10 flex items-center gap-3 px-4 lg:px-8 h-16 border-b border-[var(--color-border)]"
           style={{ backgroundColor: 'var(--color-bg)' }}
         >
+          {/* 햄버거 (lg 미만에서만) */}
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="lg:hidden flex flex-col justify-center gap-1.5 w-8 h-8 bg-transparent border-none cursor-pointer p-1 shrink-0"
+            aria-label="메뉴 열기"
+          >
+            <span className="block h-px bg-[var(--color-fg)] rounded" />
+            <span className="block h-px bg-[var(--color-fg)] rounded" />
+            <span className="block h-px bg-[var(--color-fg)] rounded" />
+          </button>
           <h1 className="m-0 text-base font-medium text-[var(--color-fg)]">
             {TABS.find((t) => t.id === activeTab)?.label}
           </h1>
         </div>
 
         {/* 콘텐츠 */}
-        <div className="flex-1 p-8">
+        <div className="flex-1 p-4 lg:p-8">
           {activeTab === 'create' && <BulkCreateForm onCreated={() => setListRefreshTrigger((n) => n + 1)} />}
           {activeTab === 'list'   && <TagListTable onNeedForceStatus={setActionTag} refreshTrigger={listRefreshTrigger} />}
           {activeTab === 'qr'     && <QrExportTab />}

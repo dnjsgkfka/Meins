@@ -76,7 +76,7 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {[...Array(6)].map((_, i) => (
           <div key={i} className="h-36 rounded-xl shimmer" />
         ))}
@@ -119,7 +119,7 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
       </div>
 
       {/* 카드 그리드 */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {paged.map((tag) => (
           <TagCard key={tag.tagCode} tag={tag} onAction={() => onNeedForceStatus(tag)} onDeleted={load} />
         ))}
