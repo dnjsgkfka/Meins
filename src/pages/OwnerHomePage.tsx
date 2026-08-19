@@ -56,7 +56,7 @@ export default function OwnerHomePage() {
         }}
       >
         <div className="flex flex-col gap-2">
-          <div className="flex flex-col gap-0.5" style={{ width: 231 }}>
+          <div className="flex flex-col gap-0.5">
             <h1 className="m-0 text-2xl font-normal leading-8 text-[var(--color-fg)]">{product.name}</h1>
             <p className="m-0 text-xs leading-4 tracking-wide text-[var(--color-muted)]"># {product.modelCode}</p>
           </div>

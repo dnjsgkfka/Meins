@@ -71,7 +71,7 @@ export default function GuestViewPage({ tagCode, data }: Props) {
       >
         {/* 제품명 + 이미지 묶음 */}
         <div className="flex flex-col gap-2">
-          <div className="flex flex-col gap-0.5" style={{ width: 231 }}>
+          <div className="flex flex-col gap-0.5">
             <h1 className="m-0 text-2xl font-normal text-[var(--color-fg)] leading-tight">
               {product.name}
             </h1>

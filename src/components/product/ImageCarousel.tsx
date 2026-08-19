@@ -10,13 +10,12 @@ function ArrowButton({ direction, onClick, disabled }: {
       onClick={onClick}
       disabled={disabled}
       className="w-8 h-8 rounded-full bg-white flex items-center justify-center border-none cursor-pointer disabled:opacity-30 shrink-0"
-      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.15)' }}
       aria-label={direction === 'left' ? '이전 이미지' : '다음 이미지'}
     >
       <svg width="7" height="12" viewBox="0 0 7 12" fill="none" aria-hidden="true">
         {direction === 'left'
-          ? <path d="M6 1L1 6L6 11" stroke="#111111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-          : <path d="M1 11L6 6L1 1" stroke="#111111" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+          ? <path d="M6 1L1 6L6 11" stroke="#111111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
+          : <path d="M1 11L6 6L1 1" stroke="#111111" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" />
         }
       </svg>
     </button>
