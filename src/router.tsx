@@ -1,6 +1,5 @@
 import { createBrowserRouter } from 'react-router';
 import Layout from './components/Layout';
-import LandingPage from './pages/LandingPage';
 import TagEntryPage from './pages/TagEntryPage';
 import VerifyPage from './pages/VerifyPage';
 import TransferPage from './pages/TransferPage';
