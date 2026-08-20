@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { forceStatus, AdminApiError } from '../../api/admin';
 import type { AdminTag, ForceStatusAction } from '../../api/admin';
 import { useAdminKeyReset } from './AdminKeyGate';
@@ -64,7 +64,12 @@ export default function ForceStatusModal({ tag, onClose, onDone }: Props) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  if (!tag) return null;
+  useEffect(() => {
+    if (!tag) {
+      setPending(null);
+      setError('');
+    }
+  }, [tag]);
 
   function handleActionClick(def: ActionDef) {
     setError('');
@@ -101,19 +106,31 @@ export default function ForceStatusModal({ tag, onClose, onDone }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className={[
+        'fixed inset-0 z-50 flex items-end justify-center transition-opacity duration-200',
+        tag ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none',
+      ].join(' ')}
       style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
       onClick={(e) => { if (e.target === e.currentTarget && !isLoading) { setPending(null); onClose(); } }}
     >
-      <div className="w-full max-w-sm bg-[var(--color-bg)] rounded-2xl px-4 pt-5 pb-6 flex flex-col gap-4 mx-4">
+      <div
+        className={[
+          'w-full max-w-sm bg-[var(--color-bg)] rounded-t-2xl px-4 pt-3 pb-6 flex flex-col gap-4 transition-transform duration-300 ease-out',
+          tag ? 'translate-y-0' : 'translate-y-full',
+        ].join(' ')}
+      >
+        {/* 드래그 핸들 */}
+        <div className="flex justify-center py-1">
+          <div className="w-10 h-1 rounded-full bg-[var(--color-icon-inactive)]" />
+        </div>
 
         {/* 태그 정보 */}
         <div className="flex flex-col gap-0.5">
           <p className="m-0 text-xs text-[var(--color-muted)]">액션 선택</p>
-          <p className="m-0 text-base text-[var(--color-fg)]">{tag.tagCode}</p>
+          <p className="m-0 text-base text-[var(--color-fg)]">{tag?.tagCode}</p>
           <p className="m-0 text-xs text-[var(--color-muted)]">
-            {tag.status === 'REGISTERED' ? '등록됨' : '미등록'}
-            {tag.locked ? ' · 잠김' : ''}
+            {tag?.status === 'REGISTERED' ? '등록됨' : '미등록'}
+            {tag?.locked ? ' · 잠김' : ''}
           </p>
         </div>
 

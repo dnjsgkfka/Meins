@@ -16,6 +16,11 @@ const PRESETS: { type: ChatPresetType; label: string; text: string }[] = [
   { type: 'heritage', label: '헤리티지', text: '이 제품에 담긴 이야기가 궁금해요.' },
 ];
 
+function resolveUserContent(content: string): string {
+  const preset = PRESETS.find((p) => p.label === content || p.type === content);
+  return preset ? preset.text : content;
+}
+
 export default function ChatPage() {
   const { tagCode } = useParams<{ tagCode: string }>();
   const data = useOutletContext<OwnerMeResponse>();
@@ -214,7 +219,7 @@ export default function ChatPage() {
               .map((msg, i) => (
                 <MessageBubble
                   key={i}
-                  message={msg}
+                  message={msg.role === 'user' ? { ...msg, content: resolveUserContent(msg.content) } : msg}
                   aborted={msg.aborted}
                   isStreaming={isStreaming && msg === messages[messages.length - 1] && msg.role === 'assistant'}
                 />
