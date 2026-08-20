@@ -3,6 +3,7 @@ import type { TagDetailResponse } from '../types/api';
 import PageHeader from '../components/PageHeader';
 import StickyBottomBar from '../components/StickyBottomBar';
 import ImageCarousel from '../components/product/ImageCarousel';
+import ProductTitle from '../components/product/ProductTitle';
 import InfoList from '../components/product/InfoList';
 import type { InfoGroup } from '../components/product/InfoList';
 import { formatSize, formatDateTime } from '../lib/format';
@@ -72,14 +73,7 @@ export default function GuestViewPage({ tagCode, data }: Props) {
       >
         {/* 제품명 + 이미지 묶음 */}
         <div className="flex flex-col gap-2">
-          <div className="flex flex-col gap-0.5">
-            <h1 className="m-0 text-2xl font-normal text-[var(--color-fg)] leading-tight">
-              {product.name}
-            </h1>
-            <p className="m-0 text-xs text-[var(--color-muted)] tracking-[0.04em]">
-              # {product.modelCode}
-            </p>
-          </div>
+          <ProductTitle name={product.name} modelCode={product.modelCode} />
           <ImageCarousel
             images={[product.heroImage, ...(product.detailImages ?? [])].filter(Boolean)}
             alt={product.name}

@@ -7,6 +7,7 @@ import { formatDateTime } from '../lib/format';
 import { useToast } from '../lib/toast';
 import { useOwnerRedirectOnInvalid } from '../lib/useOwnerRedirectOnInvalid';
 import PageHeader from '../components/PageHeader';
+import ProductTitle from '../components/product/ProductTitle';
 import BottomTabBar from '../components/BottomTabBar';
 import ProductHero from '../components/product/ProductHero';
 
@@ -90,14 +91,7 @@ export default function OwnershipPage() {
         <div className="flex flex-col gap-3">
           {/* 소유권 카드 */}
           <div className="flex flex-col gap-3 rounded-lg shadow-ownership py-6 px-2 bg-[var(--color-tint)]">
-            <div className="flex flex-col gap-0.5">
-              <h2 className="m-0 text-2xl font-normal text-[var(--color-fg)] leading-tight">
-                {data.product.name}
-              </h2>
-              <p className="m-0 text-xs text-[var(--color-muted)] tracking-[0.04em]">
-                # {data.product.modelCode}
-              </p>
-            </div>
+            <ProductTitle name={data.product.name} modelCode={data.product.modelCode} as="h2" />
 
             <ProductHero src={data.product.heroImage} alt={data.product.name} />
 
