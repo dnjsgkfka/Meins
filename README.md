@@ -23,9 +23,23 @@
 ## 🔗[Meins Link](https://meins-five.vercel.app)
 
 - [게스트 뷰(guest view)](https://meins-five.vercel.app/t/BSKL-3Y77)
-<img width="8000" height="4500" alt="MCM 어시스턴트_page-0010" src="https://github.com/user-attachments/assets/bffbe9be-061f-4035-9285-e36fd84ebe12" />
+
+---
+
+## Why?
+
+현재의 디지털 제품 여권(DPP)은 개체에 사양·소재·지속가능성 문서를 붙이는 데 그칩니다. 지금 누가 소유하는지 알 수 없고, 판매·재유통 시점마다 브랜드 여정이 끊깁니다. EU 레지스트리 역시 식별자와 여권 위치만 등록할 뿐, 소유 데이터를 누가 쥐는지는 규제가 정해 주지 않습니다.
+
+**Meins는 기존 NFC·QR 태그 위에 소유권 레이어를 얹어 이 문제를 해결합니다.** 개체에 지금의 소유자가 연결되고, 중고 거래 시 소유권이 이전되며, 케어·수선 이력은 개체에 누적되어 다음 소유자에게 승계됩니다.
+
+<img width="8000" height="4500" alt="서울과학기술대학교_이얏호_Meins_page-0007" src="https://github.com/user-attachments/assets/922587e2-60f7-4707-be9b-b7daaaf5eb7a" />
+
+
+---
 
 ## 주요 기능
+
+<img width="8000" height="4500" alt="MCM 어시스턴트_page-0010" src="https://github.com/user-attachments/assets/bffbe9be-061f-4035-9285-e36fd84ebe12" />
 
 ### 게스트 뷰
 - 태그 스캔 시 제품 정보 및 소유 등록 여부 즉시 확인
@@ -39,6 +53,8 @@
 ### 관리자 페이지
 - 태그 일괄 생성, 상태 강제 변경, QR 일괄 내보내기
 
+---
+
 ## 기술 스택
 
 | 분류 | 기술 |
@@ -50,3 +66,18 @@
 | 서버 상태 | TanStack Query v5 |
 | 배포 | Vercel (프론트) / Railway (백엔드) |
 | AI | OpenAI API (SSE 스트리밍) |
+
+---
+
+## Getting Started
+
+### 설치
+```bash
+# Clone the repository
+git clone [https://github.com/dnjsgkfka/Meins.git](https://github.com/dnjsgkfka/Meins.git)
+
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
