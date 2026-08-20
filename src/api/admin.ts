@@ -18,7 +18,7 @@ export class AdminApiError extends Error {
   }
 }
 
-async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+async function adminRequest(path: string, options: RequestInit = {}): Promise<Response> {
   const key = getAdminKey();
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -29,7 +29,6 @@ async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T
       ...options,
       signal: controller.signal,
       headers: {
-        'Content-Type': 'application/json',
         'X-Admin-Key': key ?? '',
         ...options.headers,
       },
@@ -56,36 +55,20 @@ async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T
     throw new AdminApiError(code, message, response.status);
   }
 
+  return response;
+}
+
+async function adminFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const response = await adminRequest(path, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+  });
   const text = await response.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }
 
 async function adminFetchBlob(path: string): Promise<Blob> {
-  const key = getAdminKey();
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-
-  let response: Response;
-  try {
-    response = await fetch(`${BASE_URL}${path}`, {
-      signal: controller.signal,
-      headers: { 'X-Admin-Key': key ?? '' },
-    });
-  } catch (err) {
-    clearTimeout(timer);
-    throw err;
-  }
-  clearTimeout(timer);
-
-  if (response.status === 401) {
-    clearAdminKey();
-    throw new AdminApiError('ADMIN_KEY_INVALID', '관리자 키가 올바르지 않습니다.', 401);
-  }
-
-  if (!response.ok) {
-    throw new AdminApiError('INTERNAL_ERROR', `HTTP ${response.status}`, response.status);
-  }
-
+  const response = await adminRequest(path);
   return response.blob();
 }
 

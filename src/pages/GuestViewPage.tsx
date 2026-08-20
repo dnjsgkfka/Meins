@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router';
 import type { TagDetailResponse } from '../types/api';
 import PageHeader from '../components/PageHeader';
+import StickyBottomBar from '../components/StickyBottomBar';
 import ImageCarousel from '../components/product/ImageCarousel';
+import ProductTitle from '../components/product/ProductTitle';
 import InfoList from '../components/product/InfoList';
 import type { InfoGroup } from '../components/product/InfoList';
 import { formatSize, formatDateTime } from '../lib/format';
@@ -71,14 +73,7 @@ export default function GuestViewPage({ tagCode, data }: Props) {
       >
         {/* 제품명 + 이미지 묶음 */}
         <div className="flex flex-col gap-2">
-          <div className="flex flex-col gap-0.5">
-            <h1 className="m-0 text-2xl font-normal text-[var(--color-fg)] leading-tight">
-              {product.name}
-            </h1>
-            <p className="m-0 text-xs text-[var(--color-muted)] tracking-[0.04em]">
-              # {product.modelCode}
-            </p>
-          </div>
+          <ProductTitle name={product.name} modelCode={product.modelCode} />
           <ImageCarousel
             images={[product.heroImage, ...(product.detailImages ?? [])].filter(Boolean)}
             alt={product.name}
@@ -97,16 +92,7 @@ export default function GuestViewPage({ tagCode, data }: Props) {
       </div>
 
       {/* 하단 CTA */}
-      <div
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20 flex flex-col items-stretch gap-2 px-2"
-        style={{
-          background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--color-tint) 40%)',
-          backdropFilter: 'blur(1.5px)',
-          WebkitBackdropFilter: 'blur(1.5px)',
-          paddingTop: 16,
-          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-        }}
-      >
+      <StickyBottomBar>
         {ownership.registered ? (
           <>
             <button
@@ -130,7 +116,7 @@ export default function GuestViewPage({ tagCode, data }: Props) {
             소유자 등록하기
           </button>
         )}
-      </div>
+      </StickyBottomBar>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { forceStatus, AdminApiError } from '../../api/admin';
+import { forceStatus } from '../../api/admin';
 import type { AdminTag, ForceStatusAction } from '../../api/admin';
-import { useAdminKeyReset } from './AdminKeyGate';
+import { useAdminErrorHandler } from './AdminKeyGate';
 import { useToast } from '../../lib/toast';
 
 interface ActionDef {
@@ -57,7 +57,7 @@ interface Props {
 }
 
 export default function ForceStatusModal({ tag, onClose, onDone }: Props) {
-  const resetKey = useAdminKeyReset();
+  const handleAdminError = useAdminErrorHandler();
   const { showToast } = useToast();
 
   const [pending, setPending] = useState<ActionDef | null>(null);
@@ -92,9 +92,7 @@ export default function ForceStatusModal({ tag, onClose, onDone }: Props) {
       onDone();
       onClose();
     } catch (err) {
-      if (err instanceof AdminApiError && err.code === 'ADMIN_KEY_INVALID') {
-        showToast('관리자 키가 유효하지 않습니다. 다시 입력해주세요.');
-        resetKey();
+      if (handleAdminError(err)) {
         onClose();
       } else {
         setError(err instanceof Error ? err.message : '요청에 실패했습니다.');

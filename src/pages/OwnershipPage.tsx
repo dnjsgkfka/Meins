@@ -4,24 +4,19 @@ import type { OwnerMeResponse } from '../types/api';
 import { postTransferCode, deleteTransferCode } from '../api/tags';
 import { getToken } from '../lib/ownerToken';
 import { formatDateTime } from '../lib/format';
+
+function formatExpiresAt(iso: string): string {
+  return `${formatDateTime(iso)}까지 유효`;
+}
 import { useToast } from '../lib/toast';
 import { useOwnerRedirectOnInvalid } from '../lib/useOwnerRedirectOnInvalid';
 import PageHeader from '../components/PageHeader';
+import ProductTitle from '../components/product/ProductTitle';
 import BottomTabBar from '../components/BottomTabBar';
 import ProductHero from '../components/product/ProductHero';
 
 function formatCode(code: string): string {
   return `${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8, 12)}`;
-}
-
-function formatExpiresAt(iso: string): string {
-  const d = new Date(iso);
-  const yy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  return `${yy}-${mm}-${dd} ${hh}:${min}까지 유효`;
 }
 
 export default function OwnershipPage() {
@@ -90,14 +85,7 @@ export default function OwnershipPage() {
         <div className="flex flex-col gap-3">
           {/* 소유권 카드 */}
           <div className="flex flex-col gap-3 rounded-lg shadow-ownership py-6 px-2 bg-[var(--color-tint)]">
-            <div className="flex flex-col gap-0.5">
-              <h2 className="m-0 text-2xl font-normal text-[var(--color-fg)] leading-tight">
-                {data.product.name}
-              </h2>
-              <p className="m-0 text-xs text-[var(--color-muted)] tracking-[0.04em]">
-                # {data.product.modelCode}
-              </p>
-            </div>
+            <ProductTitle name={data.product.name} modelCode={data.product.modelCode} as="h2" />
 
             <ProductHero src={data.product.heroImage} alt={data.product.name} />
 
@@ -196,12 +184,7 @@ export default function OwnershipPage() {
                   <button
                     onClick={handleCancelTransfer}
                     disabled={isCanceling}
-                    className={[
-                      'w-full h-11 rounded-full text-sm border-none transition-colors',
-                      isCanceling
-                        ? 'bg-[#BFBFBF] text-[var(--color-bg)] cursor-not-allowed'
-                        : 'bg-[#BFBFBF] text-[var(--color-bg)] cursor-pointer',
-                    ].join(' ')}
+                    className="w-full h-11 rounded-full text-sm bg-[var(--color-icon-inactive)] text-[var(--color-bg)] border-none cursor-pointer disabled:cursor-not-allowed transition-colors"
                   >
                     {isCanceling ? '취소 중...' : '발급 취소'}
                   </button>

@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { fetchQrExportZipBlob, AdminApiError } from '../../api/admin';
-import { useAdminKeyReset } from './AdminKeyGate';
+import { fetchQrExportZipBlob } from '../../api/admin';
+import { useAdminErrorHandler } from './AdminKeyGate';
 import { useToast } from '../../lib/toast';
 
 export default function QrExportTab() {
-  const resetKey = useAdminKeyReset();
+  const handleAdminError = useAdminErrorHandler();
   const { showToast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,12 +24,7 @@ export default function QrExportTab() {
       URL.revokeObjectURL(url);
       showToast('다운로드가 시작되었습니다.');
     } catch (err) {
-      if (err instanceof AdminApiError && err.code === 'ADMIN_KEY_INVALID') {
-        showToast('관리자 키가 유효하지 않습니다. 다시 입력해주세요.');
-        resetKey();
-      } else {
-        setError(err instanceof Error ? err.message : '다운로드에 실패했습니다.');
-      }
+      if (!handleAdminError(err)) setError(err instanceof Error ? err.message : '다운로드에 실패했습니다.');
     } finally {
       setIsLoading(false);
     }

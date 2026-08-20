@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { listAdminTags, fetchQrImageBlob, deleteTag, AdminApiError } from '../../api/admin';
+import { listAdminTags, fetchQrImageBlob, deleteTag } from '../../api/admin';
 import type { AdminTag } from '../../api/admin';
-import { useAdminKeyReset } from './AdminKeyGate';
+import { useAdminErrorHandler } from './AdminKeyGate';
 import { useToast } from '../../lib/toast';
 
 const ITEMS_PER_PAGE = 24;
@@ -45,8 +45,7 @@ interface Props {
 }
 
 export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Props) {
-  const resetKey = useAdminKeyReset();
-  const { showToast } = useToast();
+  const handleAdminError = useAdminErrorHandler();
 
   const [tags, setTags] = useState<AdminTag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -61,12 +60,7 @@ export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Prop
       setTags(data);
       setPage(1);
     } catch (err) {
-      if (err instanceof AdminApiError && err.code === 'ADMIN_KEY_INVALID') {
-        showToast('관리자 키가 유효하지 않습니다. 다시 입력해주세요.');
-        resetKey();
-      } else {
-        setError('목록을 불러올 수 없습니다.');
-      }
+      if (!handleAdminError(err)) setError('목록을 불러올 수 없습니다.');
     } finally {
       setIsLoading(false);
     }
