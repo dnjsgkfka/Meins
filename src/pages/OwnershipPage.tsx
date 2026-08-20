@@ -5,6 +5,7 @@ import { postTransferCode, deleteTransferCode } from '../api/tags';
 import { getToken } from '../lib/ownerToken';
 import { formatDateTime } from '../lib/format';
 import { useToast } from '../lib/toast';
+import { useOwnerRedirectOnInvalid } from '../lib/useOwnerRedirectOnInvalid';
 import PageHeader from '../components/PageHeader';
 import BottomTabBar from '../components/BottomTabBar';
 import ProductHero from '../components/product/ProductHero';
@@ -27,6 +28,7 @@ export default function OwnershipPage() {
   const { tagCode } = useParams<{ tagCode: string }>();
   const data = useOutletContext<OwnerMeResponse>();
   const { showToast } = useToast();
+  const redirectOnInvalid = useOwnerRedirectOnInvalid();
 
   const [transferCode, setTransferCode] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
@@ -41,8 +43,8 @@ export default function OwnershipPage() {
       const res = await postTransferCode(tagCode!, token);
       setTransferCode(res.code);
       setExpiresAt(res.expiresAt);
-    } catch {
-      showToast('양도 코드 발급에 실패했습니다.');
+    } catch (err) {
+      if (!redirectOnInvalid(err)) showToast('양도 코드 발급에 실패했습니다.');
     } finally {
       setIsGenerating(false);
     }
@@ -64,8 +66,8 @@ export default function OwnershipPage() {
     const token = getToken(tagCode!) ?? '';
     try {
       await deleteTransferCode(tagCode!, token);
-    } catch {
-      showToast('양도 취소에 실패했습니다.');
+    } catch (err) {
+      if (!redirectOnInvalid(err)) showToast('양도 취소에 실패했습니다.');
     } finally {
       setTransferCode(null);
       setExpiresAt(null);

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Outlet, useNavigate, useParams } from 'react-router';
+import { useEffect, useRef, useState } from 'react';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/client';
 import { fetchOwnerMe } from '../api/tags';
 import { clearToken, getToken } from '../lib/ownerToken';
@@ -10,9 +10,11 @@ import LoadingSpinner from './LoadingSpinner';
 export default function RequireOwner() {
   const { tagCode } = useParams<{ tagCode: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { showToast } = useToast();
   const [data, setData] = useState<OwnerMeResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const hasVerifiedRef = useRef(false);
 
   useEffect(() => {
     if (!tagCode) return;
@@ -24,11 +26,15 @@ export default function RequireOwner() {
     }
 
     let cancelled = false;
+    const background = hasVerifiedRef.current;
 
     async function verify(showNetworkError = true) {
       try {
         const result = await fetchOwnerMe(tagCode!, token!);
-        if (!cancelled) setData(result);
+        if (!cancelled) {
+          setData(result);
+          hasVerifiedRef.current = true;
+        }
       } catch (err) {
         if (cancelled) return;
         if (
@@ -36,12 +42,13 @@ export default function RequireOwner() {
           (err.code === 'TOKEN_INVALID' || err.code === 'TAG_NOT_FOUND')
         ) {
           clearToken(tagCode!);
+          showToast('소유권이 이전되었습니다.');
           navigate(`/t/${tagCode}`, { replace: true });
         } else if (showNetworkError) {
           showToast('네트워크 연결을 확인해 주세요.');
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && !background) setLoading(false);
       }
     }
 
@@ -56,7 +63,7 @@ export default function RequireOwner() {
       cancelled = true;
       document.removeEventListener('visibilitychange', onVisibilityChange);
     };
-  }, [tagCode, navigate, showToast]);
+  }, [tagCode, navigate, showToast, location.pathname]);
 
   if (loading) return <LoadingSpinner />;
   if (!data) return null;
