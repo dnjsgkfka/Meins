@@ -302,8 +302,9 @@ export default function ChatPage() {
             disabled={isStreaming || credits.remaining === 0}
             rows={1}
             placeholder={credits.remaining === 0 ? '오늘 대화 한도에 도달했습니다.' : '무엇이든 물어보세요.'}
+            style={{ fontSize: 16 }}
             className={[
-              'flex-1 resize-none rounded-[24px] px-2 py-3 text-sm leading-[1.4em] tracking-[0.04em] border-none outline-none',
+              'flex-1 resize-none rounded-[24px] px-2 py-3 leading-[1.4em] tracking-[0.04em] border-none outline-none',
               'bg-[var(--color-bg)] text-[var(--color-fg)] placeholder:text-[var(--color-muted)]',
               'shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)]',
               'overflow-y-auto no-scrollbar transition-opacity',
