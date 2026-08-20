@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import type { TagDetailResponse } from '../types/api';
 import PageHeader from '../components/PageHeader';
+import StickyBottomBar from '../components/StickyBottomBar';
 import ImageCarousel from '../components/product/ImageCarousel';
 import InfoList from '../components/product/InfoList';
 import type { InfoGroup } from '../components/product/InfoList';
@@ -97,16 +98,7 @@ export default function GuestViewPage({ tagCode, data }: Props) {
       </div>
 
       {/* 하단 CTA */}
-      <div
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20 flex flex-col items-stretch gap-2 px-2"
-        style={{
-          background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--color-tint) 40%)',
-          backdropFilter: 'blur(1.5px)',
-          WebkitBackdropFilter: 'blur(1.5px)',
-          paddingTop: 16,
-          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-        }}
-      >
+      <StickyBottomBar>
         {ownership.registered ? (
           <>
             <button
@@ -130,7 +122,7 @@ export default function GuestViewPage({ tagCode, data }: Props) {
             소유자 등록하기
           </button>
         )}
-      </div>
+      </StickyBottomBar>
     </div>
   );
 }

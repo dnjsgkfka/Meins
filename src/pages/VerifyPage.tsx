@@ -5,6 +5,7 @@ import { postVerifyOwnership } from '../api/tags';
 import { setToken } from '../lib/ownerToken';
 import { useToast } from '../lib/toast';
 import PageHeader from '../components/PageHeader';
+import StickyBottomBar from '../components/StickyBottomBar';
 import CodeInputField from '../components/verify/CodeInputField';
 import LockedScreen from '../components/verify/LockedScreen';
 import BottomSheet from '../components/BottomSheet';
@@ -113,16 +114,7 @@ export default function VerifyPage() {
       </div>
 
       {/* 하단 고정 영역 */}
-      <div
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] z-20 flex flex-col items-stretch gap-2 px-2"
-        style={{
-          background: 'linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--color-tint) 40%)',
-          backdropFilter: 'blur(1.5px)',
-          WebkitBackdropFilter: 'blur(1.5px)',
-          paddingTop: 16,
-          paddingBottom: 'max(16px, env(safe-area-inset-bottom))',
-        }}
-      >
+      <StickyBottomBar>
         <button
           onClick={() => setSheetOpen(true)}
           className="text-left text-xs text-[var(--color-fg)] underline bg-transparent border-none cursor-pointer tracking-[0.04em]"
@@ -141,7 +133,7 @@ export default function VerifyPage() {
         >
           {isSubmitting ? '확인 중...' : '소유자 등록하기'}
         </button>
-      </div>
+      </StickyBottomBar>
 
       {/* 코드 분실 바텀시트 */}
       <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
