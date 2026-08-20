@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { bulkCreateTags, AdminApiError } from '../../api/admin';
+import { bulkCreateTags } from '../../api/admin';
 import type { BulkCreateBody, BulkCreateResult } from '../../api/admin';
-import { useAdminKeyReset } from './AdminKeyGate';
+import { useAdminErrorHandler } from './AdminKeyGate';
 import { useToast } from '../../lib/toast';
 
 const FIELD_CLASS =
@@ -9,7 +9,7 @@ const FIELD_CLASS =
 const LABEL_CLASS = 'flex flex-col gap-1 text-xs text-[var(--color-muted)]';
 
 export default function BulkCreateForm({ onCreated }: { onCreated?: () => void }) {
-  const resetKey = useAdminKeyReset();
+  const handleAdminError = useAdminErrorHandler();
   const { showToast } = useToast();
 
   const [form, setForm] = useState<Record<string, string>>({
@@ -61,12 +61,7 @@ export default function BulkCreateForm({ onCreated }: { onCreated?: () => void }
       setResult(res);
       onCreated?.();
     } catch (err) {
-      if (err instanceof AdminApiError && err.code === 'ADMIN_KEY_INVALID') {
-        showToast('관리자 키가 유효하지 않습니다. 다시 입력해주세요.');
-        resetKey();
-      } else {
-        setError(err instanceof Error ? err.message : '생성에 실패했습니다.');
-      }
+      if (!handleAdminError(err)) setError(err instanceof Error ? err.message : '생성에 실패했습니다.');
     } finally {
       setIsSubmitting(false);
     }

@@ -1,6 +1,7 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { getAdminKey, setAdminKey, clearAdminKey } from '../../lib/adminKey';
 import { listAdminTags, AdminApiError } from '../../api/admin';
+import { useToast } from '../../lib/toast';
 
 interface Props {
   children: React.ReactNode;
@@ -90,4 +91,21 @@ const AdminKeyContext = createContext<AdminKeyContextValue>({ resetKey: () => {}
 
 export function useAdminKeyReset() {
   return useContext(AdminKeyContext).resetKey;
+}
+
+export function useAdminErrorHandler() {
+  const resetKey = useAdminKeyReset();
+  const { showToast } = useToast();
+
+  return useCallback(
+    (err: unknown): boolean => {
+      if (err instanceof AdminApiError && err.code === 'ADMIN_KEY_INVALID') {
+        showToast('관리자 키가 유효하지 않습니다. 다시 입력해주세요.');
+        resetKey();
+        return true;
+      }
+      return false;
+    },
+    [resetKey, showToast],
+  );
 }
