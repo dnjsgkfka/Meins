@@ -5,6 +5,7 @@ import { fetchChatHistory } from '../api/tags';
 import { streamChat } from '../api/streaming';
 import { getToken } from '../lib/ownerToken';
 import { useToast } from '../lib/toast';
+import { useOwnerRedirectOnInvalid } from '../lib/useOwnerRedirectOnInvalid';
 import PageHeader from '../components/PageHeader';
 import BottomTabBar from '../components/BottomTabBar';
 
@@ -25,6 +26,7 @@ export default function ChatPage() {
   const { tagCode } = useParams<{ tagCode: string }>();
   const data = useOutletContext<OwnerMeResponse>();
   const { showToast } = useToast();
+  const redirectOnInvalid = useOwnerRedirectOnInvalid();
 
   const [isLoading, setIsLoading] = useState(true);
   const [messages, setMessages] = useState<LocalMessage[]>([]);
@@ -58,8 +60,9 @@ export default function ChatPage() {
           setIsLoading(false);
         }
       })
-      .catch(() => {
-        if (!cancelled) {
+      .catch((err) => {
+        if (cancelled) return;
+        if (!redirectOnInvalid(err)) {
           showToast('대화 내역을 불러올 수 없습니다.');
           setIsLoading(false);
         }
@@ -150,7 +153,7 @@ export default function ChatPage() {
           return updated;
         });
         chargeCredit();
-      } else {
+      } else if (!redirectOnInvalid(err)) {
         showToast('메시지 전송에 실패했습니다.');
         setMessages(prevMessages);
         if (!preset) setInputText(text);

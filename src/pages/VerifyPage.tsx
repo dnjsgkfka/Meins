@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/client';
 import { postVerifyOwnership } from '../api/tags';
 import { setToken } from '../lib/ownerToken';
+import { useToast } from '../lib/toast';
 import PageHeader from '../components/PageHeader';
 import CodeInputField from '../components/verify/CodeInputField';
 import LockedScreen from '../components/verify/LockedScreen';
@@ -17,6 +18,7 @@ type PageState =
 export default function VerifyPage() {
   const { tagCode } = useParams<{ tagCode: string }>();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const [code, setCode] = useState('');
   const [state, setState] = useState<PageState>({ type: 'idle' });
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -44,6 +46,9 @@ export default function VerifyPage() {
           setState({ type: 'locked', lockedUntil: err.payload.lockedUntil! });
           break;
         case 'ALREADY_REGISTERED':
+          showToast('소유권이 이미 등록된 제품입니다.');
+          navigate(`/t/${tagCode}`, { replace: true });
+          break;
         case 'TAG_NOT_FOUND':
           navigate(`/t/${tagCode}`, { replace: true });
           break;
