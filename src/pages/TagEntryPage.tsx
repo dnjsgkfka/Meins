@@ -81,8 +81,6 @@ export default function TagEntryPage() {
   if (showLoading) return <LoadingSpinner tagCode={tagCode} />;
 
   switch (state.type) {
-    case 'loading':
-      return <LoadingSpinner tagCode={tagCode} />;
     case 'not_found':
       return (
         <TagNotFoundScreen

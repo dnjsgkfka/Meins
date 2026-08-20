@@ -274,7 +274,7 @@ export default function ChatPage() {
                     ? 'text-white cursor-not-allowed opacity-50'
                     : 'text-white cursor-pointer',
                 ].join(' ')}
-                style={!isActive ? { backgroundColor: '#BFBFBF' } : {}}
+                style={!isActive ? { backgroundColor: 'var(--color-icon-inactive)' } : {}}
               >
                 {preset.label}
               </button>
@@ -314,7 +314,7 @@ export default function ChatPage() {
             <button
               onClick={handleStop}
               className="shrink-0 w-11 h-11 rounded-full text-white flex items-center justify-center cursor-pointer border-none shadow-[0px_4px_16px_0px_rgba(0,0,0,0.08)]"
-              style={{ backgroundColor: '#2D2D2D' }}
+              style={{ backgroundColor: 'var(--color-accent)' }}
               aria-label="중단"
             >
               <span className="block w-3 h-3 rounded-sm bg-current" />
@@ -330,7 +330,7 @@ export default function ChatPage() {
                   ? 'cursor-pointer text-white'
                   : 'cursor-not-allowed text-white',
               ].join(' ')}
-              style={{ backgroundColor: inputText.trim() && credits.remaining > 0 ? '#2D2D2D' : '#BFBFBF' }}
+              style={{ backgroundColor: inputText.trim() && credits.remaining > 0 ? 'var(--color-accent)' : 'var(--color-icon-inactive)' }}
               aria-label="전송"
             >
               <svg width="7" height="12" viewBox="0 0 7 12" fill="none" aria-hidden="true">
@@ -360,7 +360,7 @@ export function MessageBubble({
   return (
     <div className="flex flex-col gap-0.5">
       {isUser ? (
-        <div className="w-full p-2 rounded-lg" style={{ backgroundColor: '#2D2D2D' }}>
+        <div className="w-full p-2 rounded-lg bg-[var(--color-accent)]">
           <p className="m-0 text-sm text-white leading-[1.4em] tracking-[0.04em] whitespace-pre-wrap">
             {message.content}
           </p>
