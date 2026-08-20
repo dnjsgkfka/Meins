@@ -46,7 +46,6 @@ interface Props {
 
 export default function TagListTable({ onNeedForceStatus, refreshTrigger }: Props) {
   const handleAdminError = useAdminErrorHandler();
-  const { showToast } = useToast();
 
   const [tags, setTags] = useState<AdminTag[]>([]);
   const [isLoading, setIsLoading] = useState(true);
