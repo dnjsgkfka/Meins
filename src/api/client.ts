@@ -13,7 +13,7 @@ export class ApiError extends Error {
   }
 }
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+export const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 const TIMEOUT_MS = 15_000;
 
 // 동일 키로 동시에 여러 번 호출 시 첫 요청 Promise 재사용

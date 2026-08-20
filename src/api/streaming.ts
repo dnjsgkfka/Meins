@@ -1,7 +1,5 @@
 import type { ChatPresetType } from '../types/api';
-import { ApiError } from './client';
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+import { ApiError, BASE_URL } from './client';
 
 export interface ChatBody {
   message?: string;
@@ -36,7 +34,8 @@ export async function* streamChat(
     throw new ApiError(payload);
   }
 
-  const reader = res.body!.getReader();
+  if (!res.body) return;
+  const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
 
